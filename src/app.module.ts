@@ -4,10 +4,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { typeOrmConfig } from './config/typeorm.config';
+import { CategoriesModule } from './modules/categories/categories.module';
+
 
 @Module({
   imports: [
-    
    // permite leer globalmete las variables de entorno
     ConfigModule.forRoot({
     isGlobal:true
@@ -18,6 +19,9 @@ import { typeOrmConfig } from './config/typeorm.config';
       useFactory: typeOrmConfig,
       inject: [ConfigService]
     }),
+
+    CategoriesModule,
+
   ],
   controllers: [AppController],
   providers: [AppService],
