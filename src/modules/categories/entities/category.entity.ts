@@ -14,7 +14,7 @@ export class Category {
 
     @Column({
         type:'varchar', 
-        length:4, 
+        length:45, 
         unique: true
     })
     name: string;
@@ -24,4 +24,4 @@ export class Category {
         default: true
     })
     state: boolean;
-}
+} 
