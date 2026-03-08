@@ -1,16 +1,16 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Category } from './entities/category.entity';
 import { Repository } from 'typeorm';
+import { Categories } from './entities/categories.entity';
 
 
 @Injectable()
 export class CategoriesService {
   constructor(
-    @InjectRepository(Category)
-      private readonly categoryRepository: Repository <Category>
+    @InjectRepository(Categories)
+      private readonly categoryRepository: Repository <Categories>
   ){}
 
   // create a new category 
@@ -25,18 +25,29 @@ export class CategoriesService {
           throw new ConflictException('El nombre de la categoría ya existe');
         }
 
-      // verificar si el código existe
-        const existCode = await this.categoryRepository.exists({
-          where:{code: createCategoryDto.code}
-        });
+      // // verificar si el código existe
+      //   const existCode = await this.categoryRepository.exists({
+      //     where:{code: createCategoryDto.code}
+      //   });
 
-        if (existCode) {
-          throw new ConflictException('El código ya existe')
-        }
+      //   if (existCode) {
+      //     throw new ConflictException('El código ya existe')
+      //   }
 
+        // creación de la categoría 
+        const category = this.categoryRepository.create(createCategoryDto);
+        const saveCategory= await this.categoryRepository.save(category);
+        
+        // modifico el código de cada categoría
+        saveCategory.code = saveCategory.category_id.toString().padStart(4, '0');
+        return await this.categoryRepository.save(category);
+        
 
     } catch (error) {
-      
+      if (error instanceof ConflictException) {
+        throw error;    
+      }
+      throw new InternalServerErrorException('Error al crear categoría');
     }
   }
 
