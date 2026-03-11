@@ -51,9 +51,20 @@ export class CategoriesService {
     }
   }
 
-  findAll() {
-    return `This action returns all categories`;
+  // listar todas las categorias por estado 
+  findAll(state?: boolean) {
+    try {
+      if (state !== undefined) {
+        return this.categoryRepository.find({where: {state}})       
+      }
+      
+      return this.categoryRepository.find({order:{state: 'DESC'}});
+    } catch (error) {
+      throw new InternalServerErrorException('Error al obtener categorías');
+    }
   }
+
+  // listar todas las categorias pero solo activas
 
   findOne(id: number) {
     return `This action returns a #${id} category`;
