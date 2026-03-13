@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseBoolPipe
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { StateValidationPipe } from 'src/common/pipes/state-validation/state-validation.pipe';
 
 @Controller('categories')
 export class CategoriesController {
@@ -13,10 +14,7 @@ export class CategoriesController {
   }
 
   @Get()
-  findAll(@Query('state', new ParseBoolPipe({
-      optional: true ,
-      exceptionFactory:()=> new BadRequestException('Solicitud inválida')})
-    ) state?: boolean) {
+  findAll(@Query('state', StateValidationPipe ) state?: boolean) {
     return this.categoriesService.findAll(state);
   }
 
