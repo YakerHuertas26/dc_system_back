@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -52,22 +52,36 @@ export class CategoriesService {
   }
 
   // listar todas las categorias por estado 
-  findAll(state?: boolean) {
+  async findAll(state?: boolean) {
     try {
       if (state !== undefined) {
-        return this.categoryRepository.find({where: {state}})       
+        return await this.categoryRepository.find({where: {state}})       
       }
       
-      return this.categoryRepository.find({order:{state: 'DESC'}});
+      return await this.categoryRepository.find({order:{state: 'DESC'}});
     } catch (error) {
       throw new InternalServerErrorException('Error al obtener categorías');
     }
   }
 
-  // listar todas las categorias pero solo activas
+  async findOne(id: number) {
+    try {
+      const categoryID= await this.categoryRepository.findOneBy({
+        category_id: id
+      });
 
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
+      if (!categoryID) {
+        throw new NotFoundException('El ID no existe')
+      };
+      
+      return categoryID;
+      
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error
+      }
+      throw new InternalServerErrorException('Error al obtener categoría');
+    }
   }
 
   update(id: number, updateCategoryDto: UpdateCategoryDto) {
