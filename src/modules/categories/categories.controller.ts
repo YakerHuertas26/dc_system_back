@@ -25,7 +25,10 @@ export class CategoriesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
+  update(@Param('id', IdValidationPipe) id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
+    console.log(id);
+    console.log(updateCategoryDto);
+    
     return this.categoriesService.update(+id, updateCategoryDto);
   }
 

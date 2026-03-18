@@ -71,7 +71,7 @@ export class CategoriesService {
       });
 
       if (!categoryID) {
-        throw new NotFoundException('El ID no existe')
+        throw new NotFoundException('La categoría no existe')
       };
       
       return categoryID;
@@ -84,8 +84,20 @@ export class CategoriesService {
     }
   }
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
+  async update(id: number, updateCategoryDto: UpdateCategoryDto) {
+    const updatecategory= await this.findOne(id);
+    updatecategory.name= updateCategoryDto.name;
+    
+    const existName= await this.categoryRepository.exists({
+      where:{name:updatecategory.name}
+    })
+    
+    if (existName){
+      throw new ConflictException('El nombre de la categoría ya existe');
+    }
+
+    return await this.categoryRepository.save(updatecategory);
+    
   }
 
   remove(id: number) {
