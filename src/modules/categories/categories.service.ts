@@ -25,15 +25,6 @@ export class CategoriesService {
           throw new ConflictException('El nombre de la categoría ya existe');
         }
 
-      // // verificar si el código existe
-      //   const existCode = await this.categoryRepository.exists({
-      //     where:{code: createCategoryDto.code}
-      //   });
-
-      //   if (existCode) {
-      //     throw new ConflictException('El código ya existe')
-      //   }
-
         // creación de la categoría 
         const category = this.categoryRepository.create(createCategoryDto);
         const saveCategory= await this.categoryRepository.save(category);
@@ -97,10 +88,18 @@ export class CategoriesService {
     }
 
     return await this.categoryRepository.save(updatecategory);
-    
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`;
+  async updatedState(id:number) {
+    const category= await this.findOne(id);
+    category.state= false;
+
+    return await this.categoryRepository.save(category); 
+  }
+
+  async remove(id: number) {
+    const category= await this.findOne(id);
+    category.state= false;
+    return await this.categoryRepository.save(category);
   }
 }

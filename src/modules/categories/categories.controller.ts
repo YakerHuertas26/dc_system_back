@@ -26,14 +26,15 @@ export class CategoriesController {
 
   @Patch(':id')
   update(@Param('id', IdValidationPipe) id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
-    console.log(id);
-    console.log(updateCategoryDto);
-    
     return this.categoriesService.update(+id, updateCategoryDto);
+  }
+  @Patch('active/:id')
+  updatedState(@Param('id', IdValidationPipe) id: string) {
+    return this.categoriesService.updatedState(+id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', IdValidationPipe) id: string) {
     return this.categoriesService.remove(+id);
   }
 }
