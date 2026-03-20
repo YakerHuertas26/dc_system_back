@@ -1,4 +1,4 @@
-import { ArgumentMetadata, BadRequestException, Injectable, ParseBoolPipe, PipeTransform } from '@nestjs/common';
+import { BadRequestException, Injectable, ParseBoolPipe } from '@nestjs/common';
 
 @Injectable()
 export class StateValidationPipe extends ParseBoolPipe {

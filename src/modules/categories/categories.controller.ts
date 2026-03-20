@@ -24,13 +24,14 @@ export class CategoriesController {
     return this.categoriesService.findOne(+id);
   }
 
+  @Patch('active/:id')
+  active(@Param('id', IdValidationPipe) id: string) {
+    return this.categoriesService.active(+id);
+  }
+  
   @Patch(':id')
   update(@Param('id', IdValidationPipe) id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
     return this.categoriesService.update(+id, updateCategoryDto);
-  }
-  @Patch('active/:id')
-  updatedState(@Param('id', IdValidationPipe) id: string) {
-    return this.categoriesService.updatedState(+id);
   }
 
   @Delete(':id')

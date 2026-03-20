@@ -1,8 +1,8 @@
-import { ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { Categories } from './entities/categories.entity';
 
 
@@ -31,7 +31,7 @@ export class CategoriesService {
         
         // modifico el código de cada categoría
         saveCategory.code = saveCategory.category_id.toString().padStart(4, '0');
-        return await this.categoryRepository.save(category);
+        return await this.categoryRepository.save(saveCategory);
         
 
     } catch (error) {
@@ -76,23 +76,30 @@ export class CategoriesService {
   }
 
   async update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    const updatecategory= await this.findOne(id);
-    updatecategory.name= updateCategoryDto.name;
-    
-    const existName= await this.categoryRepository.exists({
-      where:{name:updatecategory.name}
-    })
-    
-    if (existName){
-      throw new ConflictException('El nombre de la categoría ya existe');
-    }
+    try {
+      const category= await this.findOne(id);
+      if (!category.state) throw new BadRequestException('No se puede actualizar una categoría inactiva');
 
-    return await this.categoryRepository.save(updatecategory);
+      if (updateCategoryDto.name === category.name) throw new BadRequestException('No hay cambios para actualizar');
+
+      const existName= await this.categoryRepository.exists({
+        where:{name:updateCategoryDto.name, category_id: Not(id)}
+      })
+        
+        if (existName) throw new ConflictException('El nombre de la categoría ya existe');
+        
+      category.name= updateCategoryDto.name;
+      return await this.categoryRepository.save(category);
+
+    } catch (error) {
+      if (error instanceof HttpException) throw error; 
+      throw new InternalServerErrorException('Error al actualizar categoría')
+    }  
   }
 
-  async updatedState(id:number) {
+  async active(id:number) {
     const category= await this.findOne(id);
-    category.state= false;
+    category.state= true;
 
     return await this.categoryRepository.save(category); 
   }
