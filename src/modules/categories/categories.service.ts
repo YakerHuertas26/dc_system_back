@@ -38,7 +38,7 @@ export class CategoriesService {
       if (error instanceof ConflictException) {
         throw error;    
       }
-      throw new InternalServerErrorException('Error al crear categoría');
+      throw new InternalServerErrorException('Error al crear categorías');
     }
   }
 
