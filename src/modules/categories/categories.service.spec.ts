@@ -103,8 +103,50 @@ describe('CategoriesService', () => {
       mockCategoryRepository.create.mockReturnValue({name: categoryDto.name});
       mockCategoryRepository.save.mockRejectedValue(new Error('Error al crear categorías'))
 
-      // ACT Y ASSERT
-      await expect(service.create(categoryDto)).rejects.toThrow(new InternalServerErrorException('Error al crear categorías'))
+      // ACT 
+      const result= service.create(categoryDto);
+      //  ASSERT
+      await expect(result).rejects.toThrow(new InternalServerErrorException('Error al crear categorías'))
+    })
+  });
+
+  describe('finAll',()=>{
+    it('listar todas las categorias asc sin filtros',async()=>{
+      // ARRANGE
+      const listCategories= [mockCategory, mockInactuveCategory];
+      mockCategoryRepository.find.mockResolvedValue(listCategories);
+
+      // ACT
+      const result= await service.findAll();
+
+      // ASSERT
+        // verifica si el resultado es igual a la lista de categorias mockeada
+      expect(result).toEqual(listCategories);
+      
+        // verifica que se haya llamado con los argumentos correctos
+      expect(mockCategoryRepository.find).toHaveBeenCalledWith({order:{state: 'DESC'}});
+    });
+
+    it('listar categorias por estado', async()=>{
+      // ARRANGE
+      mockCategoryRepository.find.mockResolvedValue([mockCategory]);
+
+      // ACT
+      const result= await service.findAll(true);
+
+      // ASSERT
+      expect(result).toEqual([mockCategory]);
+      expect(mockCategoryRepository.find).toHaveBeenCalledWith({where: {state: true}});
+    });
+
+    it('lanzar una exepción si ocurre un error inesperado', async()=>{
+      // ARRANGE
+      mockCategoryRepository.find.mockRejectedValue(new Error('rror al obtener categorías'));
+      
+      // ACT 
+      const result = service.findAll();
+      // ASSERT
+      await expect(result).rejects.toThrow(new InternalServerErrorException('Error al obtener categorías'));
     })
   })
 });
