@@ -4,14 +4,14 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Categories } from './entities/categories.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { mock } from 'node:test';
-import { ConflictException, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 
 const mockCategoryRepository= {
   exists: jest.fn(),
   create: jest.fn(),
   save: jest.fn(),
   find: jest.fn(),
-  findOneby: jest.fn(),
+  findOneBy: jest.fn(),
 }
 
 const mockCategory : Categories = {
@@ -141,12 +141,48 @@ describe('CategoriesService', () => {
 
     it('lanzar una exepción si ocurre un error inesperado', async()=>{
       // ARRANGE
-      mockCategoryRepository.find.mockRejectedValue(new Error('rror al obtener categorías'));
+      mockCategoryRepository.find.mockRejectedValue(new Error('Error al obtener categorías'));
       
       // ACT 
       const result = service.findAll();
       // ASSERT
       await expect(result).rejects.toThrow(new InternalServerErrorException('Error al obtener categorías'));
     })
+  });
+
+  describe('findOne', ()=>{
+    it('obtener categoria por id', async()=>{
+      // ARRANGE
+      mockCategoryRepository.findOneBy.mockResolvedValue(mockCategory);
+
+      // ACT
+      const result= await service.findOne(mockCategory.category_id);
+
+      // ASSERT
+      expect(result).toEqual(mockCategory);
+      expect(mockCategoryRepository.findOneBy).toHaveBeenCalledWith({category_id: mockCategory.category_id})
+    });
+
+    it('lanzar una excepción si la categoría no existe', async()=>{
+      // ARRANGE
+      mockCategoryRepository.findOneBy.mockResolvedValue(null);
+
+      // ACT
+      const result = service.findOne(-1);
+
+      // ASSERT
+      await expect(result).rejects.toThrow(new NotFoundException('La categoría no existe'));
+    });
+
+    it('lanzar una excepción si ocurre un error inesperado', async()=>{
+      // ARRANGE
+      mockCategoryRepository.findOneBy.mockRejectedValue(new Error('Error al obtener categoría'));
+
+      // ACT
+      const result= service.findOne(1);
+
+      // ASSERT
+      await expect(result).rejects.toThrow(new InternalServerErrorException('Error al obtener categoría'));
+    });
   })
 });
