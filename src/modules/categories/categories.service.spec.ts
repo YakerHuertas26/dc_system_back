@@ -3,8 +3,9 @@ import { CategoriesService } from './categories.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Categories } from './entities/categories.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
-import { mock } from 'node:test';
-import { ConflictException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { UpdateCategoryDto } from './dto/update-category.dto';
+import { Not } from 'typeorm';
 
 const mockCategoryRepository= {
   exists: jest.fn(),
@@ -184,5 +185,115 @@ describe('CategoriesService', () => {
       // ASSERT
       await expect(result).rejects.toThrow(new InternalServerErrorException('Error al obtener categoría'));
     });
-  })
+  });
+
+  describe('update',()=>{
+    const updateDTO: UpdateCategoryDto = {name: 'Hogar'};
+
+    it('actualizar el nombre de la categoria', async()=>{
+      // ARRANGE 
+      const updateCategory= {...mockCategory,name: 'Hogar'};
+      jest.spyOn(service,'findOne').mockResolvedValue(mockCategory);
+      mockCategoryRepository.exists.mockResolvedValue(false);
+      mockCategoryRepository.save.mockResolvedValue(updateCategory);
+
+      // ACT
+      const resul = await service.update(1,updateCategory);
+
+      // ASET
+      expect(service.findOne).toHaveBeenCalledWith(1);
+      expect(mockCategoryRepository.exists).toHaveBeenCalledWith({
+              where:{name:updateDTO.name, category_id: Not(1)}
+            })
+      expect(mockCategoryRepository.save).toHaveBeenCalled();
+      expect(resul.name).toEqual('Hogar');
+    });
+
+    it('Lanzar una excepción si la categoria esta inactiva', async()=>{
+      // ARRANGE
+      jest.spyOn(service, 'findOne').mockResolvedValue(mockInactuveCategory);
+
+      // ACT
+      const result= service.update(2, updateDTO);
+
+      // ASSERT
+      await expect(result).rejects.toThrow(new BadRequestException('No se puede actualizar una categoría inactiva'))
+
+      expect(mockCategoryRepository.exists).not.toHaveBeenCalled();
+      expect(mockCategoryRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('lanzar una excepción si no hay cambios (nombres iguales)', async()=>{
+      // ARRANGE
+      const nameEquals: UpdateCategoryDto= {name:mockCategory.name};
+      jest.spyOn(service, 'findOne').mockResolvedValue(mockCategory);
+
+      // ACT
+      const result= service.update(1,nameEquals);
+
+      // ASSERT
+      await expect(result).rejects.toThrow(new BadRequestException('No hay cambios para actualizar'));
+      expect(mockCategoryRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('lanzar una excepción si el nombre ya existe', async()=>{
+      // ARANGE
+      jest.spyOn(service, 'findOne').mockResolvedValue({...mockCategory, name:'category1'});
+      mockCategoryRepository.exists.mockResolvedValue(true);
+
+      // ACT
+      const result= service.update(1, updateDTO);
+
+      // ASSERT
+      
+      await expect(result).rejects.toThrow(new ConflictException('El nombre de la categoría ya existe'));
+
+      expect(mockCategoryRepository.exists).toHaveBeenCalledWith({where:{name:updateDTO.name, category_id: Not(1)}});
+
+      expect(mockCategoryRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('lanzar una excepción si ocurre un error inesperado' , async()=>{
+      // ARRANGE
+      jest.spyOn(service, 'findOne').mockRejectedValue(mockCategory);
+
+      // ACT
+      const result = service.update(1, updateDTO);
+
+      // ASSERT
+      await expect(result).rejects.toThrow(new InternalServerErrorException('Error al actualizar categoría'));
+    })
+  });
+
+  describe ('active', ()=>{
+    it('activar una categoria', async()=>{
+      // ARRANGE
+      const activeCategory : Categories = {...mockInactuveCategory, state: true};
+      jest.spyOn(service, 'findOne').mockResolvedValue(mockInactuveCategory);
+      mockCategoryRepository.save.mockResolvedValue(activeCategory);
+  
+      // ACT
+      const result= await service.active(mockInactuveCategory.category_id);
+  
+      // ASSERT
+      expect(result.state).toBe(true);
+    });
+  
+    
+  });
+  
+  describe ('remove', ()=>{
+    it('activar una categoria', async()=>{
+      // ARRANGE
+      const removeCategory : Categories = {...mockInactuveCategory, state: false};
+      jest.spyOn(service, 'findOne').mockResolvedValue(mockInactuveCategory);
+      mockCategoryRepository.save.mockResolvedValue(removeCategory);
+  
+      // ACT
+      const result= await service.remove(mockInactuveCategory.category_id);
+  
+      // ASSERT
+      expect(result.state).toBe(false);
+    });
+  });
 });

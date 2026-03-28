@@ -100,7 +100,6 @@ export class CategoriesService {
   async active(id:number) {
     const category= await this.findOne(id);
     category.state= true;
-
     return await this.categoryRepository.save(category); 
   }
 
