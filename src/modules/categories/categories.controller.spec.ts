@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CategoriesController } from './categories.controller';
 import { CategoriesService } from './categories.service';
+import { CreateCategoryDto } from './dto/create-category.dto';
 
 const mockCategoriesService = {
   create:  jest.fn(),
@@ -41,4 +42,74 @@ describe('CategoriesController', () => {
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
+
+  describe('create', ()=>{
+    it('llamar al servicio create y retornar el resultado', async ()=>{
+      // ARRAGE
+      const category : CreateCategoryDto = {name: 'hogar'};
+      mockCategoriesService.create.mockResolvedValue(mockCategory);
+      
+      // ACT
+      const result = await controller.create(category);
+      
+      // ASSERT
+      expect(result).toEqual(mockCategory);
+      expect(mockCategoriesService.create).toHaveBeenCalledWith(category);
+      expect(mockCategoriesService.create).toHaveBeenCalledTimes(1);
+    })
+  });
+
+  describe('findAll', () =>{
+    it('llarmar al servicio findAll sin paramerter', async ()=>{
+      // ARRANGE
+      mockCategoriesService.findAll.mockResolvedValue([mockCategory]);
+
+      // ACT
+      const result = await controller.findAll(undefined);
+
+      // ASSERT
+      expect(result).toEqual([mockCategory]);
+      expect(mockCategoriesService.findAll).toHaveBeenCalledWith(undefined);
+    });
+
+    it('llamar al servicio findAll con parametro true', async ()=> {
+      // ARRANGE
+      mockCategoriesService.findAll.mockResolvedValue([mockCategory]);
+
+      // ACT
+      const result = await controller.findAll(true);
+
+      // ASSERT
+      expect(result).toEqual([mockCategory]);
+      expect(mockCategoriesService.findAll).toHaveBeenCalledWith(true);
+    });
+
+    it('llamar al servicio findAll con parametro false', async ()=> {
+      // ARRANGE
+      mockCategoriesService.findAll.mockResolvedValue([]);
+
+      // ACT
+      const result = await controller.findAll(false);
+
+      // ASSERT
+      expect(result).toEqual([]);
+      expect(mockCategoriesService.findAll).toHaveBeenCalledWith(false);
+    })
+  });
+
+  describe ('findOne', ()=>{
+    it('buscara por id', async ()=>{
+      // ARRANGE
+      mockCategoriesService.findOne.mockResolvedValue(mockCategory);
+      
+      // ACT
+      const result= await controller.findOne('1');
+
+      // ASSERT
+      expect(result).toEqual(mockCategory);
+      expect(mockCategoriesService.findOne).toHaveBeenCalledWith(1);
+
+      
+    });
+  })
 });
