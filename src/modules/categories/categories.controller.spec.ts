@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CategoriesController } from './categories.controller';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { Categories } from './entities/categories.entity';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 const mockCategoriesService = {
   create:  jest.fn(),
@@ -12,7 +14,7 @@ const mockCategoriesService = {
   remove:  jest.fn(),
 };
 
-const mockCategory = {
+const mockCategory: Categories = {
   category_id: 1,
   name:        'Electrónica',
   code:        '0001',
@@ -108,8 +110,52 @@ describe('CategoriesController', () => {
       // ASSERT
       expect(result).toEqual(mockCategory);
       expect(mockCategoriesService.findOne).toHaveBeenCalledWith(1);
-
-      
     });
-  })
+  });
+
+  describe ('active', ()=>{
+    it('llamar al service active', async()=>{
+      // ARRANGE
+      const falseCategorie: Categories = {... mockCategory, state: true};
+      mockCategoriesService.active.mockResolvedValue(falseCategorie);
+
+      // ACT
+      const result = await controller.active('1');
+
+      // ASSERT
+      expect(result).toEqual(falseCategorie);
+      expect(mockCategoriesService.active).toHaveBeenLastCalledWith(1);
+    })
+  });
+
+  describe('update', ()=>{
+    it('llamar al service update', async ()=>{
+      // arrange
+      const categorieDto: UpdateCategoryDto= {name: 'Niño'};
+      const updateCategories : Categories = {...mockCategory, name : 'Niño'};
+      mockCategoriesService.update.mockResolvedValue(updateCategories);
+
+      // act
+      const result = await controller.update('1', categorieDto);
+
+      // assert
+      expect(result).toEqual(updateCategories);
+      expect(mockCategoriesService.update).toHaveBeenCalledWith(1, categorieDto);
+    })
+  });
+
+  describe('remove', ()=>{
+    it('llamar al servicio remove', async ()=>{
+      // ARRANGE
+      const removeCategorie: Categories = {...mockCategory, state: false};
+      mockCategoriesService.remove.mockResolvedValue(removeCategorie);
+
+      // Act
+      const result = await controller.remove('1');
+
+      // assert
+      expect(result).toEqual(removeCategorie);
+      expect(mockCategoriesService.remove).toHaveBeenCalledWith(1);
+    })
+  });
 });
