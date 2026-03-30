@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { typeOrmConfig } from './config/typeorm.config';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { ProductStatesModule } from './modules/product_states/product_states.module';
 
 
 @Module({
@@ -21,6 +22,8 @@ import { CategoriesModule } from './modules/categories/categories.module';
     }),
 
     CategoriesModule,
+
+    ProductStatesModule,
 
   ],
   controllers: [AppController],
