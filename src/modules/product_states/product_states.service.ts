@@ -75,6 +75,5 @@ export class ProductStatesService {
     const productState =await this.findOne(id);
     await this.productStateRepository.delete(productState);
     return {message: 'El estado del producto ha sido eliminado'}
-    // return 'El estado del producto ha sido eliminado'
   }
 }
