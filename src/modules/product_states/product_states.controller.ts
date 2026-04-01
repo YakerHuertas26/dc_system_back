@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ProductStatesService } from './product_states.service';
 import { CreateProductStateDto } from './dto/create-product_state.dto';
 import { UpdateProductStateDto } from './dto/update-product_state.dto';
+import { IdValidationPipe } from 'src/common/pipes/id-validation/id-validation.pipe';
 
 @Controller('product-states')
 export class ProductStatesController {
@@ -18,17 +19,17 @@ export class ProductStatesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id',IdValidationPipe) id: string) {
     return this.productStatesService.findOne(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductStateDto: UpdateProductStateDto) {
+  update(@Param('id',IdValidationPipe) id: string, @Body() updateProductStateDto: UpdateProductStateDto) {
     return this.productStatesService.update(+id, updateProductStateDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id',IdValidationPipe) id: string) {
     return this.productStatesService.remove(+id);
   }
 }

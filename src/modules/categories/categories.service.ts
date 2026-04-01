@@ -35,7 +35,7 @@ export class CategoriesService {
         
 
     } catch (error) {
-      if (error instanceof ConflictException) {
+      if (error instanceof HttpException) {
         throw error;    
       }
       throw new InternalServerErrorException('Error al crear categorías');
