@@ -1,9 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Product } from "src/modules/products/entities/product.entity";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Categories {
     @PrimaryGeneratedColumn({name:'category_id'})
-    category_id: number;
+    categoryId: number;
 
     @Column({
         type:'varchar', 
@@ -24,4 +25,7 @@ export class Categories {
         default: true
     })
     state: boolean;
-} 
+
+    @OneToMany(()=> Product , (product) => product.catagory)
+    products: Product[];
+}

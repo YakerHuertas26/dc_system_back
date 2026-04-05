@@ -1,9 +1,9 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity()
+@Entity('product_states')
 export class ProductStates {
     @PrimaryGeneratedColumn({name: 'product_state_id'})
-    product_state_id: number;
+    productStateId: number;
 
     @Column({
         type: 'varchar',
