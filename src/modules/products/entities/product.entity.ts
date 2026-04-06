@@ -1,10 +1,11 @@
-import { Categories } from "src/modules/categories/entities/categories.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Categories } from "@/modules/categories/entities/categories.entity";
+import { ProductStates } from "@/modules/product_states/entities/product_states.entity";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('products')
 export class Product {
     @PrimaryGeneratedColumn({name:'product_id'})
-    productId: number;
+    productId!: number;
 
     @Column({
         type: 'varchar',
@@ -12,39 +13,54 @@ export class Product {
         unique: true,
         nullable: true
     })
-    code:string;
+    code!: string;
 
     @Column({
         type: 'varchar',
         length:45,
         unique:true,
     })
-    name:string;
+    name!: string;
 
     @Column({
         type:'text',
         nullable:true
     })
-    description?:string;
+    description?: string;
 
     @Column({
+        name:'sale_price',
         type: 'decimal',
         precision:10,
         scale:2
     })
-    sale_price:number;
+    salePrice!: number;
 
     @Column({
+        name:'purchase_price',
         type:'decimal',
         precision:10,
         scale:2
     })
-    purchase_price:number; 
+    purchasePrice!: number; 
 
     @ManyToOne(()=> Categories, (category)=> category.products)
     @JoinColumn({name:'category_id'})
-    catagory: Categories;
+    catagory!: Categories;
 
     @Column({name:'category_id'})
-    categoryId: number;
+    categoryId!: number;
+
+    @ManyToOne(()=> ProductStates,(productStateId)=> productStateId.products)
+    @JoinColumn({name:'product_state_id'})
+    productState!: ProductStates;
+
+    @Column({name: 'product_state_id'})
+    productStateId!: number
+
+    @CreateDateColumn({name:'created_at'})
+    createdAt!: Date
+
+    @UpdateDateColumn({name:'updated_at'})
+    updatedAt!: Date 
 }
