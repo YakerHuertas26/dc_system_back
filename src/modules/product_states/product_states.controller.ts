@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ProductStatesService } from './product_states.service';
 import { CreateProductStateDto } from './dto/create-product_state.dto';
 import { UpdateProductStateDto } from './dto/update-product_state.dto';
-import { IdValidationPipe } from 'src/common/pipes/id-validation/id-validation.pipe';
+import { IdValidationPipe } from '@/common/pipes/id-validation/id-validation.pipe';
 
 @Controller('product-states')
 export class ProductStatesController {

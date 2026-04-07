@@ -30,7 +30,7 @@ export class CategoriesService {
         const saveCategory= await this.categoryRepository.save(category);
         
         // modifico el código de cada categoría
-        saveCategory.code = saveCategory.category_id.toString().padStart(4, '0');
+        saveCategory.code = saveCategory.categoryId.toString().padStart(4, '0');
         return await this.categoryRepository.save(saveCategory);
         
 
@@ -58,7 +58,7 @@ export class CategoriesService {
   async findOne(id: number) {
     try {
       const categoryID= await this.categoryRepository.findOneBy({
-        category_id: id
+        categoryId: id
       });
 
       if (!categoryID) {
@@ -83,7 +83,7 @@ export class CategoriesService {
       if (updateCategoryDto.name === category.name) throw new BadRequestException('No hay cambios para actualizar');
 
       const existName= await this.categoryRepository.exists({
-        where:{name:updateCategoryDto.name, category_id: Not(id)}
+        where:{name:updateCategoryDto.name, categoryId: Not(id)}
       })
         
         if (existName) throw new ConflictException('El nombre de la categoría ya existe');

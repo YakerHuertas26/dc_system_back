@@ -2,6 +2,11 @@ import { Transform, Type } from "class-transformer";
 import { IsInt, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, Length } from "class-validator";
 
 export class CreateProductDto {
+    // @IsOptional()
+    // @IsString({ message: 'El código debe ser una cadena de texto' })
+    // @Length(1, 8, { message: 'El código debe tener máximo 8 caracteres' })
+    // code?: string;
+
     @Transform(({value})=>value?.trim())
     @IsNotEmpty({message: 'El nombre del producto es requerido'})
     @IsString({message:'El nombre del producto debe ser una cadena de texto'})

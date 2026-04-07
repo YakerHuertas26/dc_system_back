@@ -21,6 +21,7 @@ export class ProductStatesService {
 
       if(existeStateProduct) {throw new ConflictException('El estado del producto ya existe');
       }
+      
       const stateProduct = this.productStateRepository.create(createProductStateDto);
       return await this.productStateRepository.save(stateProduct);
     } catch (error) {
@@ -36,7 +37,7 @@ export class ProductStatesService {
   async findOne(id: number) {
     try {
       const productState =  await this.productStateRepository. findOneBy(
-        {product_state_id: id}
+        {productStateId: id}
       )
       if (!productState) {
         throw new NotFoundException('El estado del producto no existe');
@@ -56,7 +57,7 @@ export class ProductStatesService {
       if (updateProductStateDto.name === productState.name) throw new ConflictException('No se han realizado cambios en el estado del producto');
 
       const existeStateProduct =  await this.productStateRepository.exists({
-        where: {name: updateProductStateDto.name, product_state_id: Not(id)}
+        where: {name: updateProductStateDto.name, productStateId: Not(id)}
         })
       
         if(existeStateProduct) {throw new ConflictException('El estado del producto ya existe');

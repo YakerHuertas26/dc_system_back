@@ -11,7 +11,7 @@ export class Categories {
         length:4, 
         unique: true
     })
-    code!: string;
+    code?: string;
 
     @Column({
         type:'varchar', 
@@ -26,6 +26,6 @@ export class Categories {
     })
     state!: boolean;
 
-    @OneToMany(()=> Product , (product) => product.catagory)
+    @OneToMany(()=> Product , (product) => product.category)
     products!: Product[];
 }
