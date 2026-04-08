@@ -1,11 +1,42 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { Repository } from 'typeorm';
+import { Product } from './entities/product.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Categories } from '../categories/entities/categories.entity';
+import { ProductStates } from '../product_states/entities/product_states.entity';
+
 
 @Injectable()
 export class ProductsService {
-  create(createProductDto: CreateProductDto) {
-    return 'This action adds a new product';
+  constructor(
+    @InjectRepository(Product) private readonly productRepository: Repository<Product>,
+    @InjectRepository(Categories) private readonly categoryRepository: Repository<Categories>,
+    @InjectRepository(ProductStates) private readonly productStatesRepository: Repository<ProductStates>,
+  ){}
+  
+  async create(createProductDto: CreateProductDto) {
+    try {
+    const category= await this.categoryRepository.findOneBy({categoryId: createProductDto.categoryId})
+    if (!category) throw new NotFoundException("La categoría no existe");
+
+    const productState= await this.productStatesRepository.findOneBy({productStateId: createProductDto.productStateId})
+    if (!productState) throw new NotFoundException("El estado del producto no existe");
+
+    const productName= await this.productRepository.exists({where:{name:createProductDto.name}})
+    if (productName) throw new ConflictException("El nombre del producto ya existe");
+
+    const product= this.productRepository.create({...createProductDto, category, productState});
+    const productSaved= await this.productRepository.save(product);
+
+    productSaved.code= category.code + productSaved.productId.toString().padStart(4,'0');
+    return await this.productRepository.save(productSaved);
+
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException('Error al crear el producto')
+    }
   }
 
   findAll() {

@@ -13,7 +13,7 @@ export class Product {
         unique: true,
         nullable: true
     })
-    code!: string;
+    code?: string;
 
     @Column({
         type: 'varchar',
@@ -46,7 +46,7 @@ export class Product {
 
     @ManyToOne(()=> Categories, (category)=> category.products)
     @JoinColumn({name:'category_id'})
-    catagory!: Categories;
+    category!: Categories;
 
     @Column({name:'category_id'})
     categoryId!: number;
