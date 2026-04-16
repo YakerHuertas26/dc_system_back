@@ -1,7 +1,7 @@
 import { ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { Repository } from 'typeorm';
+import { FindManyOptions, Not, Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Categories } from '../categories/entities/categories.entity';
@@ -39,8 +39,26 @@ export class ProductsService {
     }
   }
 
-  findAll() {
-    return `This action returns all products`;
+  async findAll(categoryId?:number) {
+    const options: FindManyOptions<Product>= {
+      relations: {
+        category: true,
+        productState: true
+      },
+      order:{productId: 'DESC'},
+    }
+
+    const existsCategory= await this.categoryRepository.exists({where:{categoryId}})
+    if (!existsCategory) {
+      throw new NotFoundException("La categoría no existe");
+    }
+
+    if (categoryId!==undefined) {
+      options.where={categoryId}
+    }
+    
+    const [products, total] = await this.productRepository.findAndCount(options);
+    return { products, total };
   }
 
   findOne(id: number) {
