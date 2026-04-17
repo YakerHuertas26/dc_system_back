@@ -1,12 +1,11 @@
 import { ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { FindManyOptions, Not, Repository } from 'typeorm';
+import { FindManyOptions, FindOptionsWhere, Like, Not, Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Categories } from '../categories/entities/categories.entity';
 import { ProductStates } from '../product_states/entities/product_states.entity';
-
 
 @Injectable()
 export class ProductsService {
@@ -39,24 +38,47 @@ export class ProductsService {
     }
   }
 
-  async findAll(categoryId?:number) {
+  async findAll(categoryId?:number, productStateId?:number, search?: string) {
+    const clearSearch= search?.trim();
+    
+    const baseFilter= {
+      ...(categoryId!==undefined && {categoryId}),
+      ...(productStateId!==undefined && {productStateId})
+    }
+
+    let where: FindOptionsWhere<Product> | FindOptionsWhere<Product>[];
+
+    if (clearSearch) {
+      where = [
+        {...baseFilter, name:  Like(`%${clearSearch}%`)},
+        {...baseFilter, code: Like(`%${clearSearch}%`)}
+      ]
+    }else{
+      where= baseFilter
+    }
     const options: FindManyOptions<Product>= {
       relations: {
         category: true,
         productState: true
       },
+      where,
       order:{productId: 'DESC'},
     }
 
-    const existsCategory= await this.categoryRepository.exists({where:{categoryId}})
-    if (!existsCategory) {
-      throw new NotFoundException("La categoría no existe");
+    if (categoryId!==undefined) {
+      const existsCategory= await this.categoryRepository.exists({where:{categoryId}})
+      if (!existsCategory) {
+        throw new NotFoundException("La categoría no existe");
+      }
     }
 
-    if (categoryId!==undefined) {
-      options.where={categoryId}
+    if (productStateId !==undefined) {
+        const existsProductState= await this.productStatesRepository.exists({where:{productStateId}})
+        if (!existsProductState) {
+          throw new NotFoundException("El estado del producto no existe");
+      }
     }
-    
+
     const [products, total] = await this.productRepository.findAndCount(options);
     return { products, total };
   }
