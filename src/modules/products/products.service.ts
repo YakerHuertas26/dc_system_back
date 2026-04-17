@@ -38,8 +38,10 @@ export class ProductsService {
     }
   }
 
-  async findAll(categoryId?:number, productStateId?:number, search?: string) {
+  async findAll(categoryId?:number, productStateId?:number, search?: string, limit:number=10, page: number= 1) {
     const clearSearch= search?.trim();
+    const take= limit ;
+    const skip= (page - 1) * take;
     
     const baseFilter= {
       ...(categoryId!==undefined && {categoryId}),
@@ -63,6 +65,8 @@ export class ProductsService {
       },
       where,
       order:{productId: 'DESC'},
+      take,
+      skip
     }
 
     if (categoryId!==undefined) {
@@ -80,7 +84,12 @@ export class ProductsService {
     }
 
     const [products, total] = await this.productRepository.findAndCount(options);
-    return { products, total };
+    return { 
+      products, 
+      total,
+      page,
+      limit,
+      lastPage: Math.ceil(total / limit) };
   }
 
   findOne(id: number) {
