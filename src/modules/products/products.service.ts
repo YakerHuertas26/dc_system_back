@@ -38,8 +38,11 @@ export class ProductsService {
     }
   }
 
-  async findAll(categoryId?:number, productStateId?:number, search?: string) {
-    const clearSearch= search?.trim();
+  async findAll(categoryId?:number, productStateId?:number, search?: string, limit:number=10, page: number= 1) {
+    try {
+      const clearSearch= search?.trim();
+    const take= limit ;
+    const skip= (page - 1) * take;
     
     const baseFilter= {
       ...(categoryId!==undefined && {categoryId}),
@@ -63,6 +66,8 @@ export class ProductsService {
       },
       where,
       order:{productId: 'DESC'},
+      take,
+      skip
     }
 
     if (categoryId!==undefined) {
@@ -80,11 +85,38 @@ export class ProductsService {
     }
 
     const [products, total] = await this.productRepository.findAndCount(options);
-    return { products, total };
+    return { 
+      products, 
+      total,
+      page,
+      limit,
+      lastPage: Math.ceil(total / limit) };
+    } catch (error) {
+      if(error instanceof HttpException) throw error
+      throw new InternalServerErrorException('Error al obtener los productos')
+    }
+    
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(id: number) {
+    try {
+      const product = await this.productRepository.findOne({
+      where:{productId: id},
+      relations:{
+        category:true,
+        productState:true
+      }
+    })
+
+      if (!product) {
+        throw new NotFoundException('El producto no existe')
+      }
+
+    return product
+    } catch (error) {
+      if(error instanceof HttpException) throw error
+      throw new InternalServerErrorException('Error al obtener el producto')
+    }
   }
 
   update(id: number, updateProductDto: UpdateProductDto) {
