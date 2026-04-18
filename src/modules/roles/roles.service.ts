@@ -13,6 +13,13 @@ export class RolesService {
 
   async create(createRoleDto: CreateRoleDto) {
     try {
+      const exitRole= await this.roleRepository.exists({
+        where:{name:createRoleDto.name}
+      })
+        if (exitRole) {
+          throw new ConflictException('El rol ya existe')
+        }
+      
       const role= this.roleRepository.create(createRoleDto);
       return await this.roleRepository.save(role)
     } catch (error:any) {
@@ -24,7 +31,9 @@ export class RolesService {
   }
 
   findAll() {
-    return `This action returns all roles`;
+    return this.roleRepository.find({
+      order:{roleId:'DESC'}
+    });
   }
 
   findOne(id: number) {
