@@ -6,7 +6,7 @@ export class Role {
     roleId!: number
 
     @Column({
-        type:'string',
+        type:'varchar',
         unique:true,
         length:45
     })

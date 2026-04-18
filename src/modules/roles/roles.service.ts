@@ -1,11 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Role } from './entities/role.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class RolesService {
-  create(createRoleDto: CreateRoleDto) {
-    return 'This action adds a new role';
+  constructor(
+    @InjectRepository(Role) private readonly roleRepository:Repository<Role>
+  ){}
+
+  async create(createRoleDto: CreateRoleDto) {
+    try {
+      const role= this.roleRepository.create(createRoleDto);
+      return await this.roleRepository.save(role)
+    } catch (error:any) {
+      if (error?.code === 'ER_DUP_ENTRY') {
+        throw new ConflictException('El rol ya existe')
+      }
+      throw new InternalServerErrorException('Error al crear un rol')
+    }
   }
 
   findAll() {

@@ -16,15 +16,7 @@ export class CategoriesService {
   // create a new category 
   async create(createCategoryDto: CreateCategoryDto)  {
     try {
-      // verificar si el nombre existe
-        const existName= await  this.categoryRepository.exists({
-          where:{name: createCategoryDto.name}
-        })
-
-        if (existName) {
-          throw new ConflictException('El nombre de la categoría ya existe');
-        }
-
+      
         // creación de la categoría 
         const category = this.categoryRepository.create(createCategoryDto);
         const saveCategory= await this.categoryRepository.save(category);
@@ -34,10 +26,11 @@ export class CategoriesService {
         return await this.categoryRepository.save(saveCategory);
         
 
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;    
-      }
+    } catch (error:any) {
+      if (error instanceof HttpException) throw error;
+      if (error?.code === 'ER_DUP_ENTRY') {
+      throw new ConflictException('El nombre del producto ya existe');
+    }
       throw new InternalServerErrorException('Error al crear categorías');
     }
   }
