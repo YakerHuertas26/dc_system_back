@@ -26,6 +26,7 @@ export class Categories {
     })
     state!: boolean;
 
+    // category -> products (1 -> N)
     @OneToMany(()=> Product , (product) => product.category)
     products!: Product[];
 }

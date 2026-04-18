@@ -43,7 +43,7 @@ export class Product {
         scale:2
     })
     purchasePrice!: number; 
-
+    // product <- category (N -> 1)
     @ManyToOne(()=> Categories, (category)=> category.products)
     @JoinColumn({name:'category_id'})
     category!: Categories;
