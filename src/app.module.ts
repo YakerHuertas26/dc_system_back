@@ -8,6 +8,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { ProductStatesModule } from './modules/product_states/product_states.module';
 import { ProductsModule } from './modules/products/products.module';
 import { RolesModule } from './modules/roles/roles.module';
+import { UsersModule } from './modules/users/users.module';
 
 
 @Module({
@@ -30,6 +31,8 @@ import { RolesModule } from './modules/roles/roles.module';
     ProductsModule,
 
     RolesModule,
+
+    UsersModule,
 
   ],
   controllers: [AppController],
