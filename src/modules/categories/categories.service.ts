@@ -16,7 +16,15 @@ export class CategoriesService {
   // create a new category 
   async create(createCategoryDto: CreateCategoryDto)  {
     try {
-      
+      // verificar si el nombre existe
+        const existName= await  this.categoryRepository.exists({
+          where:{name: createCategoryDto.name}
+        })
+
+        if (existName) {
+          throw new ConflictException('El nombre de la categoría ya existe');
+        }
+
         // creación de la categoría 
         const category = this.categoryRepository.create(createCategoryDto);
         const saveCategory= await this.categoryRepository.save(category);

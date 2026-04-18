@@ -24,6 +24,10 @@ export class ProductsService {
 
     const productState= await this.productStatesRepository.findOneBy({productStateId: createProductDto.productStateId})
     if (!productState) throw new NotFoundException("El estado del producto no existe");
+    
+    const productName= await this.productRepository.exists({where:{name:createProductDto.name}}) 
+    
+    if (productName) throw new ConflictException("El nombre del producto ya existe");
 
     const product= this.productRepository.create({...createProductDto, category, productState});
     const productSaved= await this.productRepository.save(product);
