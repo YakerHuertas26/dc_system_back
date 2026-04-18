@@ -78,7 +78,7 @@ export class CategoriesService {
   async update(id: number, updateCategoryDto: UpdateCategoryDto) {
     try {
       const category= await this.findOne(id);
-      if (!category.state) throw new BadRequestException('No se puede actualizar una categoría inactiva');
+      if (!category.state) throw new ConflictException('No se puede actualizar una categoría inactiva');
 
       if (updateCategoryDto.name === category.name) throw new BadRequestException('No hay cambios para actualizar');
 

@@ -6,6 +6,7 @@ import { FilterProductDto } from './dto/filter-product.dto';
 import { IdValidationPipe } from '@/common/pipes/id-validation/id-validation.pipe';
 
 
+
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
@@ -36,3 +37,5 @@ export class ProductsController {
     return this.productsService.remove(+id);
   }
 }
+
+
