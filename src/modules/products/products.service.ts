@@ -6,7 +6,7 @@ import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Categories } from '../categories/entities/categories.entity';
 import { ProductStates } from '../product_states/entities/product_states.entity';
-import { not } from 'rxjs/internal/util/not';
+
 
 @Injectable()
 export class ProductsService {
@@ -160,11 +160,16 @@ export class ProductsService {
       
       throw new InternalServerErrorException('Error al actualizar el producto')
     }
-    
-    
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async remove(id: number) {
+    const product= await this.findOne(id);
+    const inactiveState= await this.productStatesRepository.findOneBy({productStateId:6})
+    
+    if (!inactiveState) {
+      throw new NotFoundException('El estado inactivo no existe, no se puede eliminar el producto')
+    }
+    product.productState= inactiveState;
+    return this.productRepository.save(product)
   }
 }
