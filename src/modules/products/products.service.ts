@@ -6,6 +6,7 @@ import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Categories } from '../categories/entities/categories.entity';
 import { ProductStates } from '../product_states/entities/product_states.entity';
+import { not } from 'rxjs/internal/util/not';
 
 @Injectable()
 export class ProductsService {
@@ -17,14 +18,12 @@ export class ProductsService {
   
   async create(createProductDto: CreateProductDto) {
     try {
+    
     const category= await this.categoryRepository.findOneBy({categoryId: createProductDto.categoryId})
     if (!category) throw new NotFoundException("La categoría no existe");
 
     const productState= await this.productStatesRepository.findOneBy({productStateId: createProductDto.productStateId})
     if (!productState) throw new NotFoundException("El estado del producto no existe");
-
-    const productName= await this.productRepository.exists({where:{name:createProductDto.name}})
-    if (productName) throw new ConflictException("El nombre del producto ya existe");
 
     const product= this.productRepository.create({...createProductDto, category, productState});
     const productSaved= await this.productRepository.save(product);
@@ -32,8 +31,11 @@ export class ProductsService {
     productSaved.code= category.code + productSaved.productId.toString().padStart(4,'0');
     return await this.productRepository.save(productSaved);
 
-    } catch (error) {
+    } catch (error:any) {
       if (error instanceof HttpException) throw error;
+      if (error?.code === 'ER_DUP_ENTRY') {
+      throw new ConflictException('El nombre del producto ya existe');
+    }
       throw new InternalServerErrorException('Error al crear el producto')
     }
   }
@@ -119,8 +121,47 @@ export class ProductsService {
     }
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async update(id: number, updateProductDto: UpdateProductDto) {
+    try {
+      const product= await this.findOne(id)
+      
+    if (updateProductDto===product) {
+      throw new ConflictException('No hay cambios para actualizar')
+    }
+
+    if (updateProductDto.name) {
+      const existName= await this.productRepository.exists({
+        where:{name:updateProductDto.name, productId: Not(id)}
+      })
+      if (existName) {
+        throw new ConflictException('El nombre del producto ya existe')
+      }
+    }
+    if (updateProductDto.categoryId) {
+      const category= await this.categoryRepository.findOneBy({categoryId: updateProductDto.categoryId})
+      
+      if (!category) throw new NotFoundException("La categoría no existe");
+
+      product.category= category
+      product.code= category.code + product.productId.toString().padStart(4,'0')
+    }
+
+    if (updateProductDto.productStateId) {
+      const productState= await this.productStatesRepository.findOneBy({productStateId: updateProductDto.productStateId})
+      if (!productState) throw new NotFoundException("El estado del producto no existe");
+
+      product.productState= productState
+    }
+    Object.assign(product, updateProductDto)
+    
+    return this.productRepository.save(product)
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      
+      throw new InternalServerErrorException('Error al actualizar el producto')
+    }
+    
+    
   }
 
   remove(id: number) {
