@@ -74,7 +74,7 @@ export class ProductStatesService {
 
   async remove(id: number) {
     const productState =await this.findOne(id);
-    await this.productStateRepository.delete(productState);
+    await this.productStateRepository.remove(productState);
     return {message: 'El estado del producto ha sido eliminado'}
   }
 }
