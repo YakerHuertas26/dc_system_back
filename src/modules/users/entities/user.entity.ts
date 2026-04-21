@@ -1,5 +1,8 @@
 import { Role } from "@/modules/roles/entities/role.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Exclude } from "class-transformer";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import * as bcrypt from 'bcrypt';
+
 
 @Entity('users')
 export class User {
@@ -19,6 +22,7 @@ export class User {
     })
     email!: string
 
+    @Exclude()
     @Column({
         type: 'varchar',
         length:45
@@ -26,8 +30,8 @@ export class User {
     password!: string
 
     @Column({
-        type:'boolean',
-        default: true
+        type:'tinyint',
+        default: 1
     })
     state!: boolean
 
@@ -45,4 +49,25 @@ export class User {
 
     @UpdateDateColumn({name:'update_at'})
     updateAt! : Date
+
+    // encriptar contraseña antes de insertar un nuevo usuario
+    @BeforeInsert()
+    async hashPasswordBeforeInsert(){
+        if (this.password) {
+            this.password= await bcrypt.hash(this.password,10) 
+        }
+    }
+
+    // encriptar contraseña antes de actualizar un usuario existente
+    @BeforeUpdate()
+    async hashPasswordBeforeUpdate(){
+        if (this.password && !this.password.startsWith('$2b$')) {
+            this.password= await bcrypt.hash(this.password, 10)
+        }
+    }
+
+    // comparar contraseñas 
+    async comparePassword(password: string): Promise<boolean>{
+        return await bcrypt.compare(password, this.password)
+    }
 }
