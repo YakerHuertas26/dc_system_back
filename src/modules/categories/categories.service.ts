@@ -31,7 +31,8 @@ export class CategoriesService {
         
         // modifico el código de cada categoría
         saveCategory.code = saveCategory.categoryId.toString().padStart(4, '0');
-        return await this.categoryRepository.save(saveCategory);
+        await this.categoryRepository.update(saveCategory.categoryId, {code:saveCategory.code})
+        return saveCategory;
         
 
     } catch (error:any) {
