@@ -148,7 +148,7 @@ export class ProductsService {
     }
     Object.assign(product, updateProductDto)
     
-    return this.productRepository.save(product)
+    return await this.productRepository.save(product)
     } catch (error) {
       if (error instanceof HttpException) throw error;
       

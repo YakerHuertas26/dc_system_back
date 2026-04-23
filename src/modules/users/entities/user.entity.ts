@@ -22,10 +22,10 @@ export class User {
     })
     email!: string
 
-    @Exclude()
     @Column({
         type: 'varchar',
-        length:45
+        length:45,
+        select: false
     })
     password!: string
 
@@ -47,7 +47,7 @@ export class User {
     @CreateDateColumn({name:'created_at'})
     createAt!: Date
 
-    @UpdateDateColumn({name:'update_at'})
+    @UpdateDateColumn({name:'updated_at'})
     updateAt! : Date
 
     // encriptar contraseña antes de insertar un nuevo usuario
