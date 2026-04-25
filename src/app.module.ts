@@ -9,6 +9,7 @@ import { ProductStatesModule } from './modules/product_states/product_states.mod
 import { ProductsModule } from './modules/products/products.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { UsersModule } from './modules/users/users.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 
 @Module({
@@ -33,6 +34,8 @@ import { UsersModule } from './modules/users/users.module';
     RolesModule,
 
     UsersModule,
+
+    AuthModule,
 
   ],
   controllers: [AppController],
