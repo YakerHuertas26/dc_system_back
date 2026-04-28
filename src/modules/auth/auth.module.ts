@@ -6,7 +6,6 @@ import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { User } from '../users/entities/user.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { StringValue } from 'ms';
-import { RolesService } from '../roles/roles.service';
 import { RolesModule } from '../roles/roles.module';
 
 @Module({

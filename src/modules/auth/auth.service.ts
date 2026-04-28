@@ -36,6 +36,24 @@ export class AuthService {
         const accessToken= this.jwtService.sign(payload);
         const {password, ...userAutorised }= user
         return {userAutorised, accessToken}
-        console.log(user);
+    }
+
+    // va servir para validar en la estrategia 
+    async validateUser(userId: number){
+        const user= await this.userRepository.findOne({
+            where:{userId: userId},
+            relations:{
+                role: true
+            }
+        });
+        if (!user) {
+        throw new UnauthorizedException('Usuario no encontrado');
+        }
+
+        if (!user.state) {
+        throw new UnauthorizedException('Usuario desactivado');
+        }
+
+        return user;
     }
 }
