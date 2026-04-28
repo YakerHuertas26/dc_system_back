@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
@@ -15,8 +15,27 @@ export class AuthService {
     ){}
 
     async login(loginAuthDto: LoginAuthDto){
-        const user=await this.userRepository.exists({where:{name:loginAuthDto.name}});
-        if (!user) throw new NotFoundException('User no existe')
-        console.log(!user);
+        const user=await this.userRepository.findOne({
+            where:{name:loginAuthDto.name},
+            select:['userId','name', 'password', 'email', 'roleId', 'state'],
+            relations:{role:true}
+        });
+        if (!user) throw new UnauthorizedException('Usuario no registrado');
+        if (!user.state) throw new UnauthorizedException('El usuario no se encuentra activo');
+
+        const passwordValid= await user.comparePassword(loginAuthDto.password);
+        if(!passwordValid) throw new UnauthorizedException('Constraseña incorrecta');
+
+        const payload = {
+            sub: user.userId,
+            name: user.name,
+            roleName: user.role.name,
+            roleId: user.roleId
+        }
+
+        const accessToken= this.jwtService.sign(payload);
+        const {password, ...userAutorised }= user
+        return {userAutorised, accessToken}
+        console.log(user);
     }
 }
