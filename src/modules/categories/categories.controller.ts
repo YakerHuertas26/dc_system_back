@@ -14,6 +14,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { StateValidationPipe } from '@/common/pipes/state-validation/state-validation.pipe';
 import { IdValidationPipe } from '@/common/pipes/id-validation/id-validation.pipe';
 
+
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
@@ -22,7 +23,7 @@ export class CategoriesController {
   create(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoriesService.create(createCategoryDto);
   }
-
+  
   @Get()
   findAll(@Query('state', StateValidationPipe) state?: boolean) {
     return this.categoriesService.findAll(state);

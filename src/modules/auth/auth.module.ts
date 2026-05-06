@@ -12,14 +12,14 @@ import { RolesModule } from '../roles/roles.module';
   imports:[
     TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync({
-    imports: [ConfigModule],
-    inject: [ConfigService],
-    useFactory: (configService: ConfigService): JwtModuleOptions => ({ 
-      secret: configService.get<string>('JWT_SECRET'),
-      signOptions: {
-        expiresIn: configService.get<string>('JWT_EXPIRATION') as StringValue,
-      },
-    }),
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService): JwtModuleOptions => ({ 
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRATION') as StringValue,
+        },
+      }),
+      inject: [ConfigService],
     }),
     RolesModule
   ],
