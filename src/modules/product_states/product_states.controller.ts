@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { 
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { ProductStatesService } from './product_states.service';
 import { CreateProductStateDto } from './dto/create-product_state.dto';
 import { UpdateProductStateDto } from './dto/update-product_state.dto';
@@ -19,17 +27,20 @@ export class ProductStatesController {
   }
 
   @Get(':id')
-  findOne(@Param('id',IdValidationPipe) id: string) {
+  findOne(@Param('id', IdValidationPipe) id: string) {
     return this.productStatesService.findOne(+id);
   }
 
   @Patch(':id')
-  update(@Param('id',IdValidationPipe) id: string, @Body() updateProductStateDto: UpdateProductStateDto) {
+  update(
+    @Param('id', IdValidationPipe) id: string,
+    @Body() updateProductStateDto: UpdateProductStateDto,
+  ) {
     return this.productStatesService.update(+id, updateProductStateDto);
   }
 
   @Delete(':id')
-  remove(@Param('id',IdValidationPipe) id: string) {
+  remove(@Param('id', IdValidationPipe) id: string) {
     return this.productStatesService.remove(+id);
   }
 }

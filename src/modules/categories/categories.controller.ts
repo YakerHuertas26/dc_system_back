@@ -1,9 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { StateValidationPipe } from '@/common/pipes/state-validation/state-validation.pipe';
 import { IdValidationPipe } from '@/common/pipes/id-validation/id-validation.pipe';
+
 
 @Controller('categories')
 export class CategoriesController {
@@ -13,9 +23,9 @@ export class CategoriesController {
   create(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoriesService.create(createCategoryDto);
   }
-
+  
   @Get()
-  findAll(@Query('state', StateValidationPipe ) state?: boolean) {
+  findAll(@Query('state', StateValidationPipe) state?: boolean) {
     return this.categoriesService.findAll(state);
   }
 
@@ -28,9 +38,12 @@ export class CategoriesController {
   active(@Param('id', IdValidationPipe) id: string) {
     return this.categoriesService.active(+id);
   }
-  
+
   @Patch(':id')
-  update(@Param('id', IdValidationPipe) id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
+  update(
+    @Param('id', IdValidationPipe) id: string,
+    @Body() updateCategoryDto: UpdateCategoryDto,
+  ) {
     return this.categoriesService.update(+id, updateCategoryDto);
   }
 
