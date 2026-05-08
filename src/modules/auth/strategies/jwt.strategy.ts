@@ -9,7 +9,7 @@ export interface JwtPayload {
   sub: number;
   name: string;
   roleName: string;
-  role: number;
+  roleId: number;
 }
 
 @Injectable()
@@ -39,14 +39,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     try {
       // / Validar que el usuario existe y está activo
-      const user = this.authService.validateUser(payload.sub);
-
+      const user = await this.authService.validateUser(payload.sub);
+      
       // Este objeto se adjunta a request.user en los controllers
       return {
         userId: payload.sub,
         name: payload.name,
         roleName: payload.roleName,
-        role: payload.role,
+        roleId: payload.roleId,
         user,
       };
     } catch (error) {
