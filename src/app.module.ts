@@ -11,6 +11,7 @@ import { RolesModule } from './modules/roles/roles.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { SuppliersModule } from './modules/suppliers/suppliers.module';
+import { ColorsModule } from './modules/colors/colors.module';
 
 
 @Module({
@@ -39,6 +40,8 @@ import { SuppliersModule } from './modules/suppliers/suppliers.module';
     AuthModule,
 
     SuppliersModule,
+
+    ColorsModule,
 
   ],
   controllers: [AppController],

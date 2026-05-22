@@ -22,9 +22,9 @@ export class AuthService {
         });
         if (!user) throw new UnauthorizedException('Usuario no registrado');
         if (!user.state) throw new UnauthorizedException('El usuario no se encuentra activo');
-
+        
         const passwordValid = await user.comparePassword(loginAuthDto.password);
-        if (!passwordValid) throw new UnauthorizedException('Constraseña incorrecta');
+        if (!passwordValid) throw new UnauthorizedException('Contraseña incorrecta');
 
         const payload = {
             sub: user.userId,
@@ -53,7 +53,6 @@ export class AuthService {
         if (!user.state) {
             throw new UnauthorizedException('Usuario desactivado');
         }
-
         return user;
     }
 }
