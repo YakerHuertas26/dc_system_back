@@ -145,9 +145,6 @@ export class ProductsService {
   async update(id: number, updateProductDto: UpdateProductDto) {
     try {
       const product = await this.findOne(id);
-      if (updateProductDto === product) {
-        throw new ConflictException('No hay cambios para actualizar');
-      }
 
       if (updateProductDto.name) {
         const existName = await this.productRepository.exists({
