@@ -70,8 +70,8 @@ export class UsersService {
   async update(id: number, updateUserDto: UpdateUserDto) {
     try {
       const user = await this.findOne(id);
-      if (user === updateUserDto)
-        throw new ConflictException('No hay datos para actualizar');
+      // if (user === updateUserDto)
+      //   throw new ConflictException('No hay datos para actualizar');
 
       if (updateUserDto.email) {
         const existEmail = await this.userRepository.exists({
