@@ -68,7 +68,7 @@ export class SuppliersService {
     }
 
     const noChanges = Object.keys(updateSupplierDto).every((key)=>{
-      return supplier[key] === updateSupplierDto[key];;
+      return supplier[key] === updateSupplierDto[key];
     });
 
     if(noChanges) throw new ConflictException('No se han realizado cambios')

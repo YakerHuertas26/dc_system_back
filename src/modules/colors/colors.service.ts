@@ -1,9 +1,9 @@
-import { ConflictException, HttpException, Injectable } from '@nestjs/common';
+import { ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateColorDto } from './dto/create-color.dto';
 import { UpdateColorDto } from './dto/update-color.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Color } from './entities/color.entity';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 
 @Injectable()
 export class ColorsService {
@@ -29,7 +29,7 @@ export class ColorsService {
     } catch (error:any) {
       if(error instanceof HttpException) throw error;
       if(error.code==="ER_DUP_ENTRY") throw new ConflictException('El color ya existe')
-      
+      throw new InternalServerErrorException('Error al crear un color');
     }
   }
 
@@ -44,15 +44,57 @@ export class ColorsService {
     return {data, total, page,limit, lastPage: Math.ceil(total/take)}
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} color`;
+  async findOne(id: number) {
+    try {
+      const color = await this.colorRepository.findOne({
+        where:{colorId:id}
+      })
+      if(!color) throw new NotFoundException('El color no existe')
+        return color;
+    } catch (error) {
+      if(error instanceof HttpException) throw error;
+      throw new InternalServerErrorException('Error al obtener el color');
+    }
   }
 
-  update(id: number, updateColorDto: UpdateColorDto) {
-    return `This action updates a #${id} color`;
+  async update(id: number, updateColorDto: UpdateColorDto) {
+    try {
+      const color = await this.findOne(id);
+  
+      // if(color.name===updateColorDto.name  && color.code === updateColorDto.code){
+      //   throw new ConflictException('No hay cambios por realizar');
+      // }
+
+      if (updateColorDto.name) {
+        const existsName= await this.colorRepository.exists({
+          where:{
+            name:updateColorDto.name,
+            colorId: Not(id),
+          }
+        })
+        if(existsName) throw new ConflictException('Ya existe un código registrado con ese nombre');
+      }
+  
+      if (updateColorDto.code) {
+        const existsCode = await this.colorRepository.exists({
+          where:{
+            code:updateColorDto.code,
+            colorId: Not(id),
+          }
+        })
+        if(existsCode) throw new ConflictException('Ya existe código registrado con ese color RGB');
+      }
+      Object.assign(color,updateColorDto);
+      return await this.colorRepository.save(color);
+    } catch (error) {
+      if(error instanceof HttpException) throw error;
+      throw new InternalServerErrorException('Error al actualizar el color')
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} color`;
+  async remove(id: number) {
+    const color = await this.findOne(id);
+    await this.colorRepository.remove(color);
+    return {message: 'Color eliminado correctamente'}
   }
 }
