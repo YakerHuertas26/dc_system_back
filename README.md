@@ -1,27 +1,28 @@
-# DC_System — Frontend
+# DC_System — Backend
 
-Interfaz web del sistema de gestión comercial DC_System. Construida con Next.js y Tailwind CSS, consume la API REST del backend para gestionar ventas, productos, inventario y usuarios.
+API REST para el sistema de gestión comercial DC_System. Construida con NestJS y MySQL, gestiona ventas, productos, inventario y usuarios con autenticación segura mediante JWT.
 
 ---
 
 ## 🛠 Stack tecnológico
 
-![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
-![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
-![Axios](https://img.shields.io/badge/Axios-5A29E4?style=for-the-badge&logo=axios&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![TypeORM](https://img.shields.io/badge/TypeORM-FE0803?style=for-the-badge&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+![Zod](https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logoColor=white)
 
 ---
 
 ## ✨ Funcionalidades
 
-- 🔐 **Autenticación** — login con JWT, rutas protegidas por rol
-- 📦 **Gestión de productos** — listado, creación, edición y eliminación
-- 🏪 **Registro de ventas** — formulario de ventas con detalle por producto
-- 📊 **Control de inventario** — visualización de stock actualizado
-- 👥 **Administración de usuarios** — gestión de cuentas y roles (vista admin)
-- 📱 **Diseño responsive** — interfaz adaptada a móvil, tablet y desktop
+- 🔐 **Autenticación y autorización** — registro, login y manejo de roles con JWT
+- 📦 **Gestión de productos** — CRUD completo con categorías y precios
+- 🏪 **Gestión de ventas** — registro de transacciones y detalle de ventas
+- 📊 **Control de inventario** — seguimiento de stock y movimientos
+- 👥 **Gestión de usuarios** — administración con roles diferenciados (admin / usuario)
+- 🔒 **Validación de datos** — validación de entrada con Zod en cada endpoint
 
 ---
 
@@ -29,16 +30,12 @@ Interfaz web del sistema de gestión comercial DC_System. Construida con Next.js
 
 ```
 src/
-├── app/
-│   ├── (auth)/         # Páginas de login y registro
-│   ├── dashboard/      # Panel principal
-│   ├── products/       # Módulo de productos
-│   ├── sales/          # Módulo de ventas
-│   ├── inventory/      # Módulo de inventario
-│   └── users/          # Módulo de usuarios (admin)
-├── components/         # Componentes reutilizables
-├── lib/                # Configuración de Axios e instancias
-└── types/              # Tipos e interfaces TypeScript
+├── auth/           # Autenticación JWT y guards
+├── users/          # Módulo de usuarios y roles
+├── products/       # Módulo de productos
+├── sales/          # Módulo de ventas
+├── inventory/      # Módulo de inventario
+└── main.ts         # Punto de entrada
 ```
 
 ---
@@ -47,13 +44,13 @@ src/
 
 ### Requisitos previos
 - Node.js 18+
-- Backend de DC_System corriendo en local ([ver instrucciones](https://github.com/YakerHuertas26))
+- MySQL 8+
 
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/YakerHuertas26/dc-system-frontend.git
-cd dc-system-frontend
+git clone https://github.com/YakerHuertas26/dc-system-backend.git
+cd dc-system-backend
 ```
 
 ### 2. Instalar dependencias
@@ -64,36 +61,63 @@ npm install
 
 ### 3. Configurar variables de entorno
 
-Crea un archivo `.env.local` en la raíz del proyecto:
+Crea un archivo `.env` en la raíz del proyecto:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:3000
+# Base de datos
+DB_HOST=localhost
+DB_PORT=3306
+DB_USERNAME=tu_usuario
+DB_PASSWORD=tu_contraseña
+DB_NAME=dc_system
+
+# JWT
+JWT_SECRET=tu_jwt_secret
+JWT_EXPIRES_IN=7d
+
+# App
+PORT=3000
 ```
 
-### 4. Correr el proyecto
+### 4. Crear la base de datos
+
+```bash
+mysql -u root -p
+CREATE DATABASE dc_system;
+```
+
+### 5. Correr el proyecto
 
 ```bash
 # Modo desarrollo
-npm run dev
+npm run start:dev
 
-# Build de producción
-npm run build
-npm run start
+# Modo producción
+npm run start:prod
 ```
 
-La app estará disponible en `http://localhost:3001`
+La API estará disponible en `http://localhost:3000`
 
 ---
 
-## 📸 Capturas de pantalla
+## 📌 Endpoints principales
 
-> 🚧 Próximamente — el proyecto está en desarrollo activo.
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| POST | `/auth/register` | Registro de usuario |
+| POST | `/auth/login` | Login y obtención de token |
+| GET | `/products` | Listar productos |
+| POST | `/products` | Crear producto |
+| GET | `/sales` | Listar ventas |
+| POST | `/sales` | Registrar venta |
+| GET | `/inventory` | Ver inventario |
+| GET | `/users` | Listar usuarios (admin) |
 
 ---
 
-## 🔗 Repositorio backend
+## 🔗 Repositorio frontend
 
-👉 [dc-system-backend](https://github.com/YakerHuertas26)
+👉 [dc-system-frontend](https://github.com/YakerHuertas26)
 
 ---
 
