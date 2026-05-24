@@ -30,14 +30,18 @@ API REST para el sistema de gestión comercial DC_System. Construida con NestJS 
 
 ```
 src/
-├── auth/           # Autenticación JWT y guards
-├── users/          # Módulo de usuarios y roles
-├── products/       # Módulo de productos
-├── sales/          # Módulo de ventas
-├── inventory/      # Módulo de inventario
-└── main.ts         # Punto de entrada
-```
+├── Modules
+    ├── auth/               # Autenticación JWT y guards
+    ├── categories/         # Módulo de categorías
+    ├── colors/             # Módulo de colores
+    ├── product_statres/    # Módulo de estado de productos
+    ├── products/           # Módulo de productos
+    ├── roles/              # Módulo de roles
+    ├── suppliers/          # Módulo de proveedores
+    ├── users/              # Módulo de usuarios
+    └── main.ts             # Punto de entrada
 
+```
 ---
 
 ## 🚀 Instalación y uso local
@@ -96,7 +100,7 @@ npm run start:dev
 npm run start:prod
 ```
 
-La API estará disponible en `http://localhost:3000`
+La API estará disponible en `----`
 
 ---
 
@@ -104,20 +108,17 @@ La API estará disponible en `http://localhost:3000`
 
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
-| POST | `/auth/register` | Registro de usuario |
 | POST | `/auth/login` | Login y obtención de token |
 | GET | `/products` | Listar productos |
 | POST | `/products` | Crear producto |
-| GET | `/sales` | Listar ventas |
-| POST | `/sales` | Registrar venta |
-| GET | `/inventory` | Ver inventario |
+| GET | `/categories` | Listar categorías |
 | GET | `/users` | Listar usuarios (admin) |
 
 ---
 
 ## 🔗 Repositorio frontend
 
-👉 [dc-system-frontend](https://github.com/YakerHuertas26)
+👉 [dc-system-frontend](https://github.com/YakerHuertas26/dc_system_front/tree/feature_v1)
 
 ---
 
