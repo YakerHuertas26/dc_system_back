@@ -11,6 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Not, Repository } from 'typeorm';
 import { RolesService } from '../roles/roles.service';
+import { isEqueals } from '@/common/utils/compare';
 
 @Injectable()
 export class UsersService {
@@ -70,8 +71,8 @@ export class UsersService {
   async update(id: number, updateUserDto: UpdateUserDto) {
     try {
       const user = await this.findOne(id);
-      // if (user === updateUserDto)
-      //   throw new ConflictException('No hay datos para actualizar');
+      const isEqueal = isEqueals(user, updateUserDto)
+      if(isEqueal) throw new ConflictException('No hay datos por actualizar')
 
       if (updateUserDto.email) {
         const existEmail = await this.userRepository.exists({

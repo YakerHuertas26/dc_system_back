@@ -4,6 +4,7 @@ import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Supplier } from './entities/supplier.entity';
 import {  Not, Repository } from 'typeorm';
+import { isEqueals } from '@/common/utils/compare';
 
 
 @Injectable()
@@ -67,9 +68,7 @@ export class SuppliersService {
       if(existSupplier) throw new ConflictException ('Ya existe un proveedor con ese ruc')
     }
 
-    const noChanges = Object.keys(updateSupplierDto).every((key)=>{
-      return supplier[key] === updateSupplierDto[key];
-    });
+    const noChanges = isEqueals(supplier, updateSupplierDto)
 
     if(noChanges) throw new ConflictException('No se han realizado cambios')
     
