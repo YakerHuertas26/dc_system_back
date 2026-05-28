@@ -36,10 +36,15 @@ export class RolesService {
     }
   }
 
-  async findAll() {
-    return await this.roleRepository.find({
-      order: { roleId: 'DESC' },
+  async findAll(limit: number = 10, page: number = 1 ) {
+    const take = limit;
+    const skip = (page - 1 ) * limit;
+    const rol = await this.roleRepository.findAndCount({
+      take,
+      skip
     });
+    const [roles, total] = rol
+    return {roles, total,take,skip,lastPage: Math.ceil(total/take)}
   }
 
   async findOne(id: number) {
