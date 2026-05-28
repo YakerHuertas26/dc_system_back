@@ -1,7 +1,7 @@
 import { Transform, Type } from "class-transformer";
 import { IsInt, IsOptional, IsBoolean, Min } from "class-validator";
 
-export class paginationCategoryDto {
+export class PaginationCategoryDto {
     @IsOptional()
     @Type(() => Boolean)
     @IsBoolean({ message: 'El valor de state debe ser un booleano' })

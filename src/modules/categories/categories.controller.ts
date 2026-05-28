@@ -17,7 +17,7 @@ import { IdValidationPipe } from '@/common/pipes/id-validation/id-validation.pip
 import { Public } from '../auth/decorators/public.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { paginationCategoryDto } from './dto/pagination-categoey.dto';
+import { PaginationCategoryDto } from './dto/pagination-categoey.dto';
 
 @Controller('categories')
 export class CategoriesController {
@@ -33,7 +33,7 @@ export class CategoriesController {
   @Public()
   @Get()
   findAll(
-    @Query() query? : paginationCategoryDto) {
+    @Query() query? : PaginationCategoryDto) {
     const {state,take, page} = query || {} 
     return this.categoriesService.findAll(state, take, page);
   }
