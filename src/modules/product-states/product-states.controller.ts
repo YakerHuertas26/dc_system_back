@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { ProductStatesService } from './product-states.service';
 import { CreateProductStateDto } from './dto/create-product_state.dto';
@@ -14,6 +15,7 @@ import { UpdateProductStateDto } from './dto/update-product_state.dto';
 import { IdValidationPipe } from '@/common/pipes/id-validation/id-validation.pipe';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { PaginationProductStateDto } from './dto/pagination-product_state.dto';
 
 @Controller('product-states')
 export class ProductStatesController {
@@ -29,8 +31,9 @@ export class ProductStatesController {
   @UseGuards(RolesGuard)
   @Roles('Admin')
   @Get()
-  findAll() {
-    return this.productStatesService.findAll();
+  findAll(@Query() query: PaginationProductStateDto) {
+    const {take, page} = query
+    return this.productStatesService.findAll(take, page);
   }
 
   @UseGuards(RolesGuard)

@@ -38,8 +38,15 @@ export class ProductStatesService {
     }
   }
 
-  async findAll() {
-    return await this.productStateRepository.find();
+  async findAll(limit:number = 10 , page: number = 1) {
+    const take = limit;
+    const skip = (page - 1 )* limit;
+    const state =  await this.productStateRepository.findAndCount({
+      take,
+      skip
+    });
+    const [stateProducts, total] = state
+    return {stateProducts, total, take, skip, lastPage: Math.ceil(total/take)}
   }
 
   async findOne(id: number) {
