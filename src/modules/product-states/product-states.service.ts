@@ -8,7 +8,7 @@ import {
 import { CreateProductStateDto } from './dto/create-product_state.dto';
 import { UpdateProductStateDto } from './dto/update-product_state.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProductStates } from './entities/product_states.entity';
+import { ProductStates } from './entities/product-states.entity';
 import { Not, Repository } from 'typeorm';
 
 @Injectable()

@@ -13,7 +13,7 @@ import {
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoriesService } from '../categories/categories.service';
-import { ProductStatesService } from '../product_states/product_states.service';
+import { ProductStatesService } from '../product-states/product-states.service';
 
 
 @Injectable()

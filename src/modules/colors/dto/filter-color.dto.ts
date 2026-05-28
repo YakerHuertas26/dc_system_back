@@ -1,7 +1,7 @@
 import { Transform, Type } from "class-transformer";
 import { IsInt, IsOptional, Min } from "class-validator";
 
-export class filterColorDto{
+export class PaginationColorDto{
     @IsOptional()
     @Type(()=> Number)
     @IsInt({message:'el take debe ser un número entero'})

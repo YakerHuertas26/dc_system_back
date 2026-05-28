@@ -51,13 +51,27 @@ export class CategoriesService {
   }
 
   // listar todas las categorias por estado
-  async findAll(state?: boolean) {
+  async findAll(state?: boolean, limit:number =10 , page:number = 1) {
     try {
+      const take = limit;
+      const skip = (page - 1) * limit;
       if (state !== undefined) {
-        return await this.categoryRepository.find({ where: { state } });
+        const category = await this.categoryRepository.findAndCount({ 
+          where: { state },
+          take,
+          skip
+        });
+        const [categories, total] = category
+        return {categories, total, take, skip, lastPage: Math.ceil(total/take)}
       }
 
-      return await this.categoryRepository.find({ order: { state: 'DESC' } });
+      const category = await this.categoryRepository.findAndCount({ 
+        order: { state: 'DESC' },
+        take,
+        skip
+      });
+      const [categories, total] = category
+      return {categories, total, take, skip, lastPage: Math.ceil(total/take)}
     } catch (error) {
       throw new InternalServerErrorException('Error al obtener categorías');
     }

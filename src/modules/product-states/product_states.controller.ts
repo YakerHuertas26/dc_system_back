@@ -8,7 +8,7 @@ import {
   Delete,
   UseGuards,
 } from '@nestjs/common';
-import { ProductStatesService } from './product_states.service';
+import { ProductStatesService } from './product-states.service';
 import { CreateProductStateDto } from './dto/create-product_state.dto';
 import { UpdateProductStateDto } from './dto/update-product_state.dto';
 import { IdValidationPipe } from '@/common/pipes/id-validation/id-validation.pipe';
