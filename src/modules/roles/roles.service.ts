@@ -59,15 +59,15 @@ export class RolesService {
     try {
       const rol = await this.findOne(id);
       if (rol.name === updateRoleDto.name)
-        throw new ConflictException('no hay datos por actualizar');
+        throw new ConflictException('No hay datos por actualizar');
       const existRol = await this.roleRepository.exists({
         where: { name: updateRoleDto.name, roleId: Not(id) },
       });
       if (existRol) throw new ConflictException('El rol ya existe');
 
       Object.assign(rol, updateRoleDto);
-
       return this.roleRepository.save(rol);
+      
     } catch (error) {
       if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException('Error al actualizar un rol');
