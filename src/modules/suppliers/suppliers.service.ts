@@ -1,4 +1,4 @@
-import { ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -34,8 +34,16 @@ export class SuppliersService {
     }
   }
 
-  findAll() {
-    return this.supplierRepositor.find();
+  async findAll(limit: number = 10, page: number = 1) {
+    const take= limit;
+    const skip = (page - 1) * limit;
+  
+    const supplier = await this.supplierRepositor.findAndCount({
+      take,
+      skip
+    });
+    const [suppliers, total] = supplier;
+    return {supplier, total, take, skip, lastPage : Math.ceil(total/take)}
   }
 
   async findOne(id: number) {
@@ -68,9 +76,8 @@ export class SuppliersService {
       if(existSupplier) throw new ConflictException ('Ya existe un proveedor con ese ruc')
     }
 
-    const noChanges = isEqueals(supplier, updateSupplierDto)
-
-    if(noChanges) throw new ConflictException('No se han realizado cambios')
+    const isEquals = isEqueals(supplier, updateSupplierDto)
+    if(isEquals) throw new BadRequestException('Los datos enviados son iguales a los registrados actualmente.')
     
       Object.assign(supplier, updateSupplierDto);
     return await this.supplierRepositor.save(supplier);

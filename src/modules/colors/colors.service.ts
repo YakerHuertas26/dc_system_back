@@ -1,9 +1,10 @@
-import { ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateColorDto } from './dto/create-color.dto';
 import { UpdateColorDto } from './dto/update-color.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Color } from './entities/color.entity';
 import { Not, Repository } from 'typeorm';
+import { isEqueals } from '@/common/utils/compare';
 
 @Injectable()
 export class ColorsService {
@@ -60,10 +61,8 @@ export class ColorsService {
   async update(id: number, updateColorDto: UpdateColorDto) {
     try {
       const color = await this.findOne(id);
-  
-      // if(color.name===updateColorDto.name  && color.code === updateColorDto.code){
-      //   throw new ConflictException('No hay cambios por realizar');
-      // }
+      const isEquals = isEqueals(color, updateColorDto);
+      if(isEquals) throw new BadRequestException('No se registraron cambios');
 
       if (updateColorDto.name) {
         const existsName= await this.colorRepository.exists({
