@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -14,6 +15,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { IdValidationPipe } from '@/common/pipes/id-validation/id-validation.pipe';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { paginationRoleDto } from '../roles/dto/pagination-role.dto';
 
 @Controller('users')
 export class UsersController {
@@ -29,8 +31,9 @@ export class UsersController {
   @UseGuards(RolesGuard)
   @Roles('Admin')
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query() query: paginationRoleDto) {
+    const {take, page} = query
+    return this.usersService.findAll(take, page);
   }
 
   @UseGuards(RolesGuard)

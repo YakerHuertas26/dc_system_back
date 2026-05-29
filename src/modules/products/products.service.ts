@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   HttpException,
   Injectable,
@@ -14,6 +15,7 @@ import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoriesService } from '../categories/categories.service';
 import { ProductStatesService } from '../product-states/product-states.service';
+import { isEqueals } from '@/common/utils/compare';
 
 
 @Injectable()
@@ -145,7 +147,8 @@ export class ProductsService {
   async update(id: number, updateProductDto: UpdateProductDto) {
     try {
       const product = await this.findOne(id);
-
+      const isEquals = isEqueals(product, updateProductDto);
+      if(isEquals) throw new BadRequestException('No se registraron cambios')
       if (updateProductDto.name) {
         const existName = await this.productRepository.exists({
           where: {

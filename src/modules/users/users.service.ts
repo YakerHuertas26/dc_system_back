@@ -42,12 +42,18 @@ export class UsersService {
     }
   }
 
-  async findAll() {
-    return await this.userRepository.find({
+  async findAll(limit: number = 10, page: number = 1) {
+    const take= limit;
+    const skip = (page - 1) * limit;
+    const user= await this.userRepository.findAndCount({
       relations: {
         role: true,
       },
+      take,
+      skip
     });
+    const [users, total] = user;
+    return {users, total, take, skip, lastPage: Math.ceil(total/take)}
   }
 
   async findOne(id: number) {
@@ -72,7 +78,7 @@ export class UsersService {
     try {
       const user = await this.findOne(id);
       const isEqueal = isEqueals(user, updateUserDto)
-      if(isEqueal) throw new ConflictException('No hay datos por actualizar')
+      if(isEqueal) throw new ConflictException('Los datos enviados son iguales a los registrados actualmente.')
 
       if (updateUserDto.email) {
         const existEmail = await this.userRepository.exists({
