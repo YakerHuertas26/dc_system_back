@@ -31,7 +31,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   handleRequest(err: any, user: any, info: any, context: ExecutionContext) {
     // Si hay un error o no hay usuario, lanzar UnauthorizedException
     if (err || !user) {
-      console.log(err, user);
       
       // Mensajes específicos según el tipo de error
       if (info?.name === 'TokenExpiredError') {
