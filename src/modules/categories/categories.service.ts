@@ -19,10 +19,8 @@ export class CategoriesService {
     private readonly categoryRepository: Repository<Categories>,
   ) {}
 
-  //create a new category
   async create(createCategoryDto: CreateCategoryDto) {
     try {
-      // verificar si el nombre existe
       const existName = await this.categoryRepository.exists({
         where: { name: createCategoryDto.name },
       });
@@ -46,7 +44,7 @@ export class CategoriesService {
       if (error?.code === 'ER_DUP_ENTRY') {
         throw new ConflictException('El nombre del producto ya existe');
       }
-      throw new InternalServerErrorException('Error al crear categorías');
+      throw new InternalServerErrorException('Error al crear la categorías');
     }
   }
 
@@ -73,7 +71,7 @@ export class CategoriesService {
       const [categories, total] = category
       return {categories, total, take, skip, lastPage: Math.ceil(total/take)}
     } catch (error) {
-      throw new InternalServerErrorException('Error al obtener categorías');
+      throw new InternalServerErrorException('Error al obtener las categorías');
     }
   }
 
@@ -83,14 +81,14 @@ export class CategoriesService {
         categoryId: id,
       });
       if (!categoryID) {
-        throw new NotFoundException('La categoría no existe');
+        throw new NotFoundException('El id de la categoría no existe');
       }
       return categoryID;
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
-      throw new InternalServerErrorException('Error al obtener categoría');
+      throw new InternalServerErrorException('Error al obtener la categoría');
     }
   }
 
@@ -103,7 +101,7 @@ export class CategoriesService {
         );
 
       if (updateCategoryDto.name === category.name)
-        throw new BadRequestException('No hay cambios para actualizar');
+        throw new BadRequestException('Los datos enviados son iguales a los registrados actualmente');
 
       const existName = await this.categoryRepository.exists({
         where: {
@@ -112,14 +110,12 @@ export class CategoriesService {
         },
       });
 
-      if (existName)
-        throw new ConflictException('El nombre de la categoría ya existe');
-
+      if (existName) throw new ConflictException('El nombre de la categoría ya existe');
       category.name = updateCategoryDto.name;
       return await this.categoryRepository.save(category);
     } catch (error) {
       if (error instanceof HttpException) throw error;
-      throw new InternalServerErrorException('Error al actualizar categoría');
+      throw new InternalServerErrorException('Error al actualizar la categoría');
     }
   }
 

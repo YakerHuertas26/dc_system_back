@@ -12,6 +12,7 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { SuppliersModule } from './modules/suppliers/suppliers.module';
 import { ColorsModule } from './modules/colors/colors.module';
+import { ProductColorsModule } from './modules/product-colors/product-colors.module';
 
 
 @Module({
@@ -42,6 +43,8 @@ import { ColorsModule } from './modules/colors/colors.module';
     SuppliersModule,
 
     ColorsModule,
+
+    ProductColorsModule,
 
   ],
   controllers: [AppController],

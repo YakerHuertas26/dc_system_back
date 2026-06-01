@@ -39,7 +39,7 @@ create table if not exists categories(
 ) ENGINE=InnoDB;
 
 create table if not exists product_states(
-	product_state_id auto_increment primary key,
+	product_state_id int auto_increment primary key,
     name varchar(45) not null
 )ENGINE=InnoDB;
 

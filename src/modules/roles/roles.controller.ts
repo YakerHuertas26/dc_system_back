@@ -6,13 +6,17 @@ import { IdValidationPipe } from '@/common/pipes/id-validation/id-validation.pip
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { paginationRoleDto } from './dto/pagination-role.dto';
+<<<<<<< HEAD
+import { Public } from '../auth/decorators/public.decorator';
+=======
+>>>>>>> 60ab33b6269f7ffc9e31101b47aa6920eb4c3306
 
 @Controller('roles')
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
-
-  @UseGuards(RolesGuard)
-  @Roles('Admin')
+  @Public()
+  // @UseGuards(RolesGuard)
+  // @Roles('Admin')
   @Post()
   create(@Body() createRoleDto: CreateRoleDto) {
     return this.rolesService.create(createRoleDto);

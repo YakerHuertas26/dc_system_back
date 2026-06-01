@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   HttpException,
   Injectable,
@@ -66,7 +67,7 @@ export class ProductStatesService {
     try {
       const productState = await this.findOne(id);
 
-      if (updateProductStateDto.name === productState.name) throw new ConflictException('No se han realizado cambios en el estado del producto');
+      if (updateProductStateDto.name === productState.name) throw new BadRequestException('No se han realizado cambios en el estado del producto');
 
       const existeStateProduct = await this.productStateRepository.exists({
         where: {
