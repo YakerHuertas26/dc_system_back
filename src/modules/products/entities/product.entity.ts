@@ -1,5 +1,5 @@
 import { Categories } from "@/modules/categories/entities/categories.entity";
-import { ProductStates } from "@/modules/product_states/entities/product_states.entity";
+import { ProductStates } from "@/modules/product-states/entities/product-states.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('products')

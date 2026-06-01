@@ -1,9 +1,10 @@
-import { ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Supplier } from './entities/supplier.entity';
 import {  Not, Repository } from 'typeorm';
+import { isEqueals } from '@/common/utils/compare';
 
 
 @Injectable()
@@ -19,7 +20,7 @@ export class SuppliersService {
         where:[{ name: createSupplierDto.name }, { ruc: createSupplierDto.ruc }]
       }) 
 
-      if(existSupplier) throw new ConflictException('El proveedor con nombre o ruc ya existe');
+      if(existSupplier) throw new ConflictException('El nombre o ruc del  proveedor ya existe');
 
       const supplier = this.supplierRepositor.create(createSupplierDto);
       return await this.supplierRepositor.save(supplier);
@@ -33,8 +34,16 @@ export class SuppliersService {
     }
   }
 
-  findAll() {
-    return this.supplierRepositor.find();
+  async findAll(limit: number = 10, page: number = 1) {
+    const take= limit;
+    const skip = (page - 1) * limit;
+  
+    const supplier = await this.supplierRepositor.findAndCount({
+      take,
+      skip
+    });
+    const [suppliers, total] = supplier;
+    return {suppliers, total, take, skip, lastPage : Math.ceil(total/take)}
   }
 
   async findOne(id: number) {
@@ -42,7 +51,7 @@ export class SuppliersService {
       const supplier = await this.supplierRepositor.findOne({
         where:{supplierId: id}
       });
-      if(!supplier) throw new NotFoundException ('Proveedor no encontrado');
+      if(!supplier) throw new NotFoundException ('el id del Proveedor no existe');
       return supplier;
 
     } catch (error) {
@@ -58,20 +67,17 @@ export class SuppliersService {
       const existSupplier = await this.supplierRepositor.exists({
         where:{name: updateSupplierDto.name,supplierId: Not(id)},
       })
-      if(existSupplier) throw new ConflictException ('Ya existe un proveedor con ese nombre')
+      if(existSupplier) throw new ConflictException('El nombre del  proveedor ya existe')
     }
     if (updateSupplierDto.ruc) {
       const existSupplier = await this.supplierRepositor.exists({
         where:{ruc: updateSupplierDto.ruc,supplierId: Not(id)},
       })
-      if(existSupplier) throw new ConflictException ('Ya existe un proveedor con ese ruc')
+      if(existSupplier) throw new ConflictException ('El ruc del proovedor ya esiste')
     }
 
-    const noChanges = Object.keys(updateSupplierDto).every((key)=>{
-      return supplier[key] === updateSupplierDto[key];
-    });
-
-    if(noChanges) throw new ConflictException('No se han realizado cambios')
+    const isEquals = isEqueals(supplier, updateSupplierDto)
+    if(isEquals) throw new BadRequestException('Los datos enviados son iguales a los registrados actualmente.')
     
       Object.assign(supplier, updateSupplierDto);
     return await this.supplierRepositor.save(supplier);
@@ -83,13 +89,13 @@ export class SuppliersService {
     const supplier = await this.findOne(id);
       supplier.state = true;
       await this.supplierRepositor.save(supplier);
-      return 'Proveedor activado correctamente'
+      return 'El estado del suppliers a sido activado'
   }
 
   async remove(id: number) {
     const supplier = await this.findOne(id);
       supplier.state = false;
       await this.supplierRepositor.save(supplier);
-      return 'Eliminado correctamente'
+      return 'El proovedor ha sido Eliminado'
   }
 }

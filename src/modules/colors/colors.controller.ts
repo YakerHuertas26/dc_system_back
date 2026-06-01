@@ -5,7 +5,7 @@ import { UpdateColorDto } from './dto/update-color.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Public } from '../auth/decorators/public.decorator';
-import { filterColorDto } from './dto/filter-color.dto';
+import { PaginationColorDto } from './dto/pagination-color.dto';
 
 @Controller('colors')
 export class ColorsController {
@@ -19,7 +19,7 @@ export class ColorsController {
   }
   @Public()
   @Get()
-  findAll(@Query() query: filterColorDto ) {
+  findAll(@Query() query: PaginationColorDto ) {
     const {take, page} = query
     return this.colorsService.findAll(take, page);
   }

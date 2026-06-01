@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   HttpException,
   Injectable,
@@ -8,7 +9,7 @@ import {
 import { CreateProductStateDto } from './dto/create-product_state.dto';
 import { UpdateProductStateDto } from './dto/update-product_state.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProductStates } from './entities/product_states.entity';
+import { ProductStates } from './entities/product-states.entity';
 import { Not, Repository } from 'typeorm';
 
 @Injectable()
@@ -38,8 +39,15 @@ export class ProductStatesService {
     }
   }
 
-  async findAll() {
-    return await this.productStateRepository.find();
+  async findAll(limit:number = 10 , page: number = 1) {
+    const take = limit;
+    const skip = (page - 1 )* limit;
+    const state =  await this.productStateRepository.findAndCount({
+      take,
+      skip
+    });
+    const [stateProducts, total] = state
+    return {stateProducts, total, take, skip, lastPage: Math.ceil(total/take)}
   }
 
   async findOne(id: number) {
@@ -59,7 +67,7 @@ export class ProductStatesService {
     try {
       const productState = await this.findOne(id);
 
-      if (updateProductStateDto.name === productState.name) throw new ConflictException('No se han realizado cambios en el estado del producto');
+      if (updateProductStateDto.name === productState.name) throw new BadRequestException('No se han realizado cambios en el estado del producto');
 
       const existeStateProduct = await this.productStateRepository.exists({
         where: {

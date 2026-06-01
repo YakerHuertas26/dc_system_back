@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   HttpException,
   Injectable,
@@ -23,7 +24,7 @@ export class RolesService {
         where: { name: createRoleDto.name },
       });
       if (exitRole) {
-        throw new ConflictException('El rol ya existe');
+        throw new ConflictException('El nombre del rol ya existe');
       }
 
       const role = this.roleRepository.create(createRoleDto);
@@ -32,14 +33,19 @@ export class RolesService {
       if (error?.code === 'ER_DUP_ENTRY') {
         throw new ConflictException('El rol ya existe');
       }
-      throw new InternalServerErrorException('Error al crear un rol');
+      throw new InternalServerErrorException('Error al crear el rol');
     }
   }
 
-  async findAll() {
-    return await this.roleRepository.find({
-      order: { roleId: 'DESC' },
+  async findAll(limit: number = 10, page: number = 1 ) {
+    const take = limit;
+    const skip = (page - 1 ) * limit;
+    const rol = await this.roleRepository.findAndCount({
+      take,
+      skip
     });
+    const [roles, total] = rol
+    return {roles, total,take,skip,lastPage: Math.ceil(total/take)}
   }
 
   async findOne(id: number) {
@@ -59,24 +65,24 @@ export class RolesService {
     try {
       const rol = await this.findOne(id);
       if (rol.name === updateRoleDto.name)
-        throw new ConflictException('no hay datos por actualizar');
+        throw new BadRequestException('Los datos enviados son iguales a los registrados actualmente');
       const existRol = await this.roleRepository.exists({
         where: { name: updateRoleDto.name, roleId: Not(id) },
       });
-      if (existRol) throw new ConflictException('El rol ya existe');
+      if (existRol) throw new ConflictException('El nombre del rol ya existe');
 
       Object.assign(rol, updateRoleDto);
-
       return this.roleRepository.save(rol);
+      
     } catch (error) {
       if (error instanceof HttpException) throw error;
-      throw new InternalServerErrorException('Error al actualizar un rol');
+      throw new InternalServerErrorException('Error al actualizar el rol');
     }
   }
 
   async remove(id: number) {
     const rol = await this.findOne(id);
     this.roleRepository.remove(rol);
-    return `Rol ha sido elimado`;
+    return `el Rol ha sido elimado`;
   }
 }

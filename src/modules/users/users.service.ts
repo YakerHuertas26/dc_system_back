@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   HttpException,
   Injectable,
@@ -11,6 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Not, Repository } from 'typeorm';
 import { RolesService } from '../roles/roles.service';
+import { isEqueals } from '@/common/utils/compare';
 
 @Injectable()
 export class UsersService {
@@ -27,7 +29,7 @@ export class UsersService {
         where: { email: createUserDto.email },
       });
       if (existEmail) {
-        throw new ConflictException('El correo electrónico ya está registrado');
+        throw new ConflictException('El correo del usuario ya existe');
       }
       const user = this.userRepository.create({ ...createUserDto, role });
       const saveUser = await this.userRepository.save(user);
@@ -37,16 +39,22 @@ export class UsersService {
       if (error instanceof HttpException) throw error;
       if (error?.code === 'ER_DUP_ENTRY')
         throw new ConflictException('El correo electrónico ya está registrado');
-      throw new InternalServerErrorException('Error al crear usuario');
+      throw new InternalServerErrorException('Error al crear el usuario');
     }
   }
 
-  async findAll() {
-    return await this.userRepository.find({
+  async findAll(limit: number = 10, page: number = 1) {
+    const take= limit;
+    const skip = (page - 1) * limit;
+    const user= await this.userRepository.findAndCount({
       relations: {
         role: true,
       },
+      take,
+      skip
     });
+    const [users, total] = user;
+    return {users, total, take, skip, lastPage: Math.ceil(total/take)}
   }
 
   async findOne(id: number) {
@@ -58,7 +66,7 @@ export class UsersService {
         },
       });
       if (!user)
-        throw new NotFoundException('El usuario no ha sido encontrado');
+        throw new NotFoundException('El id del usuario ya existe');
 
       return user;
     } catch (error) {
@@ -70,8 +78,8 @@ export class UsersService {
   async update(id: number, updateUserDto: UpdateUserDto) {
     try {
       const user = await this.findOne(id);
-      // if (user === updateUserDto)
-      //   throw new ConflictException('No hay datos para actualizar');
+      const isEqueal = isEqueals(user, updateUserDto)
+      if(isEqueal) throw new BadRequestException('Los datos enviados son iguales a los registrados actualmente.')
 
       if (updateUserDto.email) {
         const existEmail = await this.userRepository.exists({
@@ -82,7 +90,7 @@ export class UsersService {
         });
         if (existEmail)
           throw new ConflictException(
-            'El correo electrónico ya está registrado',
+            'El correo del usuario ya existe',
           );
       }
       if (updateUserDto.roleId) {
@@ -95,7 +103,7 @@ export class UsersService {
       return result;
     } catch (error) {
       if (error instanceof HttpException) throw error;
-      throw new InternalServerErrorException('Error al actualizar usuario');
+      throw new InternalServerErrorException('Error al actualizar el usuario');
     }
   }
 

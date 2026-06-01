@@ -1,9 +1,10 @@
-import { ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateColorDto } from './dto/create-color.dto';
 import { UpdateColorDto } from './dto/update-color.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Color } from './entities/color.entity';
 import { Not, Repository } from 'typeorm';
+import { isEqueals } from '@/common/utils/compare';
 
 @Injectable()
 export class ColorsService {
@@ -29,7 +30,7 @@ export class ColorsService {
     } catch (error:any) {
       if(error instanceof HttpException) throw error;
       if(error.code==="ER_DUP_ENTRY") throw new ConflictException('El color ya existe')
-      throw new InternalServerErrorException('Error al crear un color');
+      throw new InternalServerErrorException('Error al crear el color');
     }
   }
 
@@ -49,7 +50,7 @@ export class ColorsService {
       const color = await this.colorRepository.findOne({
         where:{colorId:id}
       })
-      if(!color) throw new NotFoundException('El color no existe')
+      if(!color) throw new NotFoundException('El id del color no existe')
         return color;
     } catch (error) {
       if(error instanceof HttpException) throw error;
@@ -60,10 +61,8 @@ export class ColorsService {
   async update(id: number, updateColorDto: UpdateColorDto) {
     try {
       const color = await this.findOne(id);
-  
-      // if(color.name===updateColorDto.name  && color.code === updateColorDto.code){
-      //   throw new ConflictException('No hay cambios por realizar');
-      // }
+      const isEquals = isEqueals(color, updateColorDto);
+      if(isEquals) throw new BadRequestException('Los datos enviados son iguales a los registrados actualmente');
 
       if (updateColorDto.name) {
         const existsName= await this.colorRepository.exists({
@@ -72,7 +71,7 @@ export class ColorsService {
             colorId: Not(id),
           }
         })
-        if(existsName) throw new ConflictException('Ya existe un código registrado con ese nombre');
+        if(existsName) throw new ConflictException('El nombre del color ya existe');
       }
   
       if (updateColorDto.code) {
@@ -82,7 +81,7 @@ export class ColorsService {
             colorId: Not(id),
           }
         })
-        if(existsCode) throw new ConflictException('Ya existe código registrado con ese color RGB');
+        if(existsCode) throw new ConflictException('El código RGB del color ya existe');
       }
       Object.assign(color,updateColorDto);
       return await this.colorRepository.save(color);
@@ -95,6 +94,6 @@ export class ColorsService {
   async remove(id: number) {
     const color = await this.findOne(id);
     await this.colorRepository.remove(color);
-    return {message: 'Color eliminado correctamente'}
+    return {message: 'El Color ha sido eliminado'}
   }
 }

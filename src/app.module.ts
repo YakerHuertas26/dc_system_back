@@ -5,13 +5,14 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { typeOrmConfig } from './config/typeorm.config';
 import { CategoriesModule } from './modules/categories/categories.module';
-import { ProductStatesModule } from './modules/product_states/product_states.module';
+import { ProductStatesModule } from './modules/product-states/product-states.module';
 import { ProductsModule } from './modules/products/products.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { SuppliersModule } from './modules/suppliers/suppliers.module';
 import { ColorsModule } from './modules/colors/colors.module';
+import { ProductColorsModule } from './modules/product-colors/product-colors.module';
 
 
 @Module({
@@ -42,6 +43,8 @@ import { ColorsModule } from './modules/colors/colors.module';
     SuppliersModule,
 
     ColorsModule,
+
+    ProductColorsModule,
 
   ],
   controllers: [AppController],

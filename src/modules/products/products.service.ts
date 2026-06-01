@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   HttpException,
   Injectable,
@@ -13,7 +14,9 @@ import {
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoriesService } from '../categories/categories.service';
-import { ProductStatesService } from '../product_states/product_states.service';
+import { ProductStatesService } from '../product-states/product-states.service';
+import { isEqueals } from '@/common/utils/compare';
+import { ProductStates } from '../product-states/entities/product-states.entity';
 
 
 @Injectable()
@@ -21,6 +24,8 @@ export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @InjectRepository(ProductStates)
+    private readonly productStateRepository: Repository<ProductStates>,
     private readonly categoryService: CategoriesService,
     private readonly productStatesService: ProductStatesService,
   ) {}
@@ -132,7 +137,7 @@ export class ProductsService {
       });
 
       if (!product) {
-        throw new NotFoundException('El producto no existe');
+        throw new NotFoundException('El id del producto no existe');
       }
 
       return product;
@@ -145,7 +150,8 @@ export class ProductsService {
   async update(id: number, updateProductDto: UpdateProductDto) {
     try {
       const product = await this.findOne(id);
-
+      const isEquals = isEqueals(product, updateProductDto);
+      if(isEquals) throw new BadRequestException('Los datos enviados son iguales a los registrados actualmente')
       if (updateProductDto.name) {
         const existName = await this.productRepository.exists({
           where: {
@@ -184,14 +190,24 @@ export class ProductsService {
   }
 
   async remove(id: number) {
-    const product = await this.findOne(id);
-    const inactiveState = await this.productStatesService.findOne(6);
-    if (!inactiveState) {
-      throw new NotFoundException(
-        'El estado inactivo no existe, no se puede eliminar el producto'
-      );
+    try {
+      const product = await this.findOne(id);
+      console.log(product);
+      
+      const inactiveState = await this.productStateRepository.findOne({
+        where:{name:"Agotado"}
+      });
+      
+      if (!inactiveState) {
+        throw new NotFoundException(
+          'El estado inactivo no existe, no se puede eliminar el producto'
+        );
+      }
+      product.productState = inactiveState;
+      return this.productRepository.save(product);
+    } catch (error) {
+      if(error instanceof HttpException) throw error
+      throw new InternalServerErrorException('Error al eliminar producto (estado agotado)')
     }
-    product.productState = inactiveState;
-    return this.productRepository.save(product);
   }
 }
