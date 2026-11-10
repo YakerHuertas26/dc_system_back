@@ -1,16 +1,24 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   HttpException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from './entities/role.entity';
-import { Not, Repository } from 'typeorm';
+import { EntityManager, Not, Repository } from 'typeorm';
+import { User } from '../users/entities/user.entity';
+import {
+  isActiveAccount,
+  isAssignableRoleName,
+  isReservedRoleName,
+} from '../auth/authorization.policy';
 
 @Injectable()
 export class RolesService {
@@ -18,18 +26,77 @@ export class RolesService {
     @InjectRepository(Role) private readonly roleRepository: Repository<Role>,
   ) {}
 
-  async create(createRoleDto: CreateRoleDto) {
-    try {
-      const exitRole = await this.roleRepository.exists({
-        where: { name: createRoleDto.name },
+  // All user/role writers acquire this same lock first. No count-only invariant.
+  async withAdminTransaction<T>(
+    actorId: number | undefined,
+    operation: (manager: EntityManager, adminRole: Role) => Promise<T>,
+  ): Promise<T> {
+    if (
+      actorId === undefined ||
+      !Number.isSafeInteger(actorId) ||
+      actorId <= 0
+    ) {
+      throw new UnauthorizedException('Usuario no autenticado');
+    }
+    return this.roleRepository.manager.transaction(async (manager) => {
+      const adminRole = await manager.getRepository(Role).findOne({
+        where: { name: 'Admin' },
+        lock: { mode: 'pessimistic_write' },
       });
-      if (exitRole) {
-        throw new ConflictException('El nombre del rol ya existe');
+      if (!adminRole || adminRole.name !== 'Admin') {
+        throw new ForbiddenException(
+          'El rol administrativo no está disponible',
+        );
       }
+      const actor = await manager.getRepository(User).findOne({
+        where: { userId: actorId },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!actor || !isActiveAccount(actor.state)) {
+        throw new UnauthorizedException('Usuario no autenticado');
+      }
+      if (actor.roleId !== adminRole.roleId) {
+        throw new ForbiddenException('Se requiere un administrador vigente');
+      }
+      return operation(manager, adminRole);
+    });
+  }
 
-      const role = this.roleRepository.create(createRoleDto);
-      return await this.roleRepository.save(role);
+  async findAssignableRole(id: number, manager: EntityManager): Promise<Role> {
+    if (!Number.isSafeInteger(id) || id <= 0) {
+      throw new BadRequestException('El rol debe ser un entero positivo');
+    }
+    const role = await manager.getRepository(Role).findOne({
+      where: { roleId: id },
+      lock: { mode: 'pessimistic_write' },
+    });
+    if (!role || !isAssignableRoleName(role.name)) {
+      throw new ForbiddenException('El rol solicitado no está autorizado');
+    }
+    return role;
+  }
+
+  async create(createRoleDto: CreateRoleDto, actorId?: number) {
+    try {
+      return await this.withAdminTransaction(actorId, async (manager) => {
+        const roles = manager.getRepository(Role);
+        if (
+          isReservedRoleName(createRoleDto.name) &&
+          !isAssignableRoleName(createRoleDto.name)
+        ) {
+          throw new ForbiddenException('El nombre del rol está reservado');
+        }
+        const exists = await roles.exists({
+          where: { name: createRoleDto.name },
+        });
+        if (exists) {
+          throw new ConflictException('El nombre del rol ya existe');
+        }
+        const role = roles.create({ name: createRoleDto.name });
+        return await roles.save(role);
+      });
     } catch (error: any) {
+      if (error instanceof HttpException) throw error;
       if (error?.code === 'ER_DUP_ENTRY') {
         throw new ConflictException('El rol ya existe');
       }
@@ -61,28 +128,55 @@ export class RolesService {
     }
   }
 
-  async update(id: number, updateRoleDto: UpdateRoleDto) {
+  async update(id: number, updateRoleDto: UpdateRoleDto, actorId?: number) {
     try {
-      const rol = await this.findOne(id);
-      if (rol.name === updateRoleDto.name)
-        throw new BadRequestException('Los datos enviados son iguales a los registrados actualmente');
-      const existRol = await this.roleRepository.exists({
-        where: { name: updateRoleDto.name, roleId: Not(id) },
+      return await this.withAdminTransaction(actorId, async (manager) => {
+        const roles = manager.getRepository(Role);
+        const role = await roles.findOne({
+          where: { roleId: id },
+          lock: { mode: 'pessimistic_write' },
+        });
+        if (!role) throw new NotFoundException('El id del rol no existe');
+        if (
+          isReservedRoleName(role.name) ||
+          (updateRoleDto.name !== undefined &&
+            isReservedRoleName(updateRoleDto.name))
+        ) {
+          throw new ForbiddenException(
+            'No se pueden modificar roles reservados',
+          );
+        }
+        if (!updateRoleDto.name || role.name === updateRoleDto.name) {
+          throw new BadRequestException(
+            'Los datos enviados son iguales a los registrados actualmente',
+          );
+        }
+        const exists = await roles.exists({
+          where: { name: updateRoleDto.name, roleId: Not(id) },
+        });
+        if (exists) throw new ConflictException('El nombre del rol ya existe');
+        role.name = updateRoleDto.name;
+        return await roles.save(role);
       });
-      if (existRol) throw new ConflictException('El nombre del rol ya existe');
-
-      Object.assign(rol, updateRoleDto);
-      return this.roleRepository.save(rol);
-      
     } catch (error) {
       if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException('Error al actualizar el rol');
     }
   }
 
-  async remove(id: number) {
-    const rol = await this.findOne(id);
-    this.roleRepository.remove(rol);
-    return `el Rol ha sido elimado`;
+  async remove(id: number, actorId?: number) {
+    return this.withAdminTransaction(actorId, async (manager) => {
+      const roles = manager.getRepository(Role);
+      const role = await roles.findOne({
+        where: { roleId: id },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!role) throw new NotFoundException('El id del rol no existe');
+      if (isReservedRoleName(role.name)) {
+        throw new ForbiddenException('No se pueden eliminar roles reservados');
+      }
+      await roles.remove(role);
+      return `el Rol ha sido elimado`;
+    });
   }
 }

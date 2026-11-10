@@ -1,4 +1,4 @@
-import { 
+import {
   Controller,
   Get,
   Post,
@@ -16,6 +16,7 @@ import { IdValidationPipe } from '@/common/pipes/id-validation/id-validation.pip
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { PaginationProductStateDto } from './dto/pagination-product_state.dto';
+import { toProductStateResponse } from './dto/product-state-response.dto';
 
 @Controller('product-states')
 export class ProductStatesController {
@@ -24,33 +25,44 @@ export class ProductStatesController {
   @UseGuards(RolesGuard)
   @Roles('Admin')
   @Post()
-  create(@Body() createProductStateDto: CreateProductStateDto) {
-    return this.productStatesService.create(createProductStateDto);
+  async create(@Body() createProductStateDto: CreateProductStateDto) {
+    return toProductStateResponse(
+      await this.productStatesService.create(createProductStateDto),
+    );
   }
 
   @UseGuards(RolesGuard)
   @Roles('Admin')
   @Get()
-  findAll(@Query() query: PaginationProductStateDto) {
-    const {take, page} = query
-    return this.productStatesService.findAll(take, page);
+  async findAll(@Query() query: PaginationProductStateDto) {
+    const { take, page } = query;
+    const result = await this.productStatesService.findAll(take, page);
+    return {
+      stateProducts: result.stateProducts.map(toProductStateResponse),
+      total: result.total,
+      take: result.take,
+      skip: result.skip,
+      lastPage: result.lastPage,
+    };
   }
 
   @UseGuards(RolesGuard)
   @Roles('Admin')
   @Get(':id')
-  findOne(@Param('id', IdValidationPipe) id: string) {
-    return this.productStatesService.findOne(+id);
+  async findOne(@Param('id', IdValidationPipe) id: string) {
+    return toProductStateResponse(await this.productStatesService.findOne(+id));
   }
 
   @UseGuards(RolesGuard)
   @Roles('Admin')
   @Patch(':id')
-  update(
+  async update(
     @Param('id', IdValidationPipe) id: string,
     @Body() updateProductStateDto: UpdateProductStateDto,
   ) {
-    return this.productStatesService.update(+id, updateProductStateDto);
+    return toProductStateResponse(
+      await this.productStatesService.update(+id, updateProductStateDto),
+    );
   }
 
   @UseGuards(RolesGuard)

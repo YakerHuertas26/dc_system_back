@@ -7,6 +7,7 @@ import {
   Length,
   Matches,
   MinLength,
+  Min,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -27,7 +28,10 @@ export class CreateUserDto {
   email!: string;
 
   @IsNotEmpty({ message: 'La contraseña es requerida' })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
+  @IsString({ message: 'La contraseña debe ser una cadena de texto' })
   @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, {
     message:
@@ -38,5 +42,6 @@ export class CreateUserDto {
   @IsNotEmpty({ message: 'El rol es requerido' })
   @Type(() => Number)
   @IsInt({ message: 'El rol debe ser un número entero' })
+  @Min(1, { message: 'El rol debe ser un entero positivo' })
   roleId!: number;
 }

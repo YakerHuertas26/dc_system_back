@@ -3,7 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AuthService } from '../auth.service';
-import { StringValue } from 'ms';
+import { assertCurrentRole } from '../authorization.policy';
+import { validateJwtSecret } from '../../../config/runtime-config';
 
 export interface JwtPayload {
   sub: number;
@@ -26,34 +27,30 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       ignoreExpiration: false,
 
       // clave secreta
-      secretOrKey: configService.get<string>('JWT_SECRET') as StringValue,
+      secretOrKey: validateJwtSecret(configService.get('JWT_SECRET')),
     });
   }
   async validate(payload: JwtPayload) {
     // Verificar que el payload tiene la estructura correcta
-    if (!payload || !payload.sub) {
+    if (!payload || !Number.isSafeInteger(payload.sub) || payload.sub <= 0) {
       throw new UnauthorizedException(
         'Token inválido. Por favor inicie sesión nuevamente.',
       );
     }
 
-    try {
-      // / Validar que el usuario existe y está activo
-      const user = await this.authService.validateUser(payload.sub);
-      
-      // Este objeto se adjunta a request.user en los controllers
-      return {
-        userId: payload.sub,
-        name: payload.name,
-        roleName: payload.roleName,
-        roleId: payload.roleId,
-        user,
-      };
-    } catch (error) {
-        // Si validateUser lanza error, convertirlo a UnauthorizedException
-        throw new UnauthorizedException(
-        'Usuario no autenticado. Por favor inicie sesión.'
-      );
+    const user = await this.authService.validateUser(payload.sub);
+    if (!user || user.userId !== payload.sub) {
+      throw new UnauthorizedException('Usuario no autenticado');
     }
+    assertCurrentRole(user);
+
+    // Claims describe login time; only current server data grants permissions.
+    return {
+      userId: user.userId,
+      name: user.name,
+      roleName: user.role.name,
+      roleId: user.roleId,
+      user,
+    };
   }
 }

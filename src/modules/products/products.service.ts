@@ -192,7 +192,6 @@ export class ProductsService {
   async remove(id: number) {
     try {
       const product = await this.findOne(id);
-      console.log(product);
       
       const inactiveState = await this.productStateRepository.findOne({
         where:{name:"Agotado"}

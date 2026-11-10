@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -7,8 +17,10 @@ import { IdValidationPipe } from '@/common/pipes/id-validation/id-validation.pip
 import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
-
-
+import {
+  toAdminProductResponse,
+  toPublicProductResponse,
+} from './dto/product-response.dto';
 
 @Controller('products')
 export class ProductsController {
@@ -17,43 +29,54 @@ export class ProductsController {
   @UseGuards(RolesGuard)
   @Roles('Admin')
   @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productsService.create(createProductDto);
+  async create(@Body() createProductDto: CreateProductDto) {
+    return toAdminProductResponse(
+      await this.productsService.create(createProductDto),
+    );
   }
 
   @Public()
   @Get()
-  findAll(@Query() query: FilterProductDto) {
+  async findAll(@Query() query: FilterProductDto) {
     const { category_id, product_state, search, take, page } = query;
-    return this.productsService.findAll(
+    const result = await this.productsService.findAll(
       category_id,
       product_state,
       search,
       take,
       page,
     );
+    return {
+      products: result.products.map(toPublicProductResponse),
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      lastPage: result.lastPage,
+    };
   }
 
   @Public()
   @Get(':id')
-  findOne(@Param('id', IdValidationPipe) id: string) {
-    return this.productsService.findOne(+id);
+  async findOne(@Param('id', IdValidationPipe) id: string) {
+    return toPublicProductResponse(await this.productsService.findOne(+id));
   }
 
   @UseGuards(RolesGuard)
   @Roles('Admin')
   @Patch(':id')
-  update(
+  async update(
     @Param('id', IdValidationPipe) id: string,
     @Body() updateProductDto: UpdateProductDto,
   ) {
-    return this.productsService.update(+id, updateProductDto);
+    return toAdminProductResponse(
+      await this.productsService.update(+id, updateProductDto),
+    );
   }
 
   @UseGuards(RolesGuard)
   @Roles('Admin')
   @Delete(':id')
-  remove(@Param('id', IdValidationPipe) id: string) {
-    return this.productsService.remove(+id);
+  async remove(@Param('id', IdValidationPipe) id: string) {
+    return toAdminProductResponse(await this.productsService.remove(+id));
   }
 }

@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Query,
+  Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -16,20 +17,19 @@ import { IdValidationPipe } from '@/common/pipes/id-validation/id-validation.pip
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { paginationRoleDto } from '../roles/dto/pagination-role.dto';
-<<<<<<< HEAD
-import { Public } from '../auth/decorators/public.decorator';
-=======
->>>>>>> 60ab33b6269f7ffc9e31101b47aa6920eb4c3306
+import type { AuthenticatedRequest } from '../auth/authorization.policy';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-  @Public()
-  // @UseGuards(RolesGuard)
-  // @Roles('Admin')
+  @UseGuards(RolesGuard)
+  @Roles('Admin')
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  create(
+    @Body() createUserDto: CreateUserDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.usersService.create(createUserDto, request.user?.userId);
   }
 
   @UseGuards(RolesGuard)
@@ -53,14 +53,18 @@ export class UsersController {
   update(
     @Param('id', IdValidationPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
+    @Req() request: AuthenticatedRequest,
   ) {
-    return this.usersService.update(+id, updateUserDto);
+    return this.usersService.update(+id, updateUserDto, request.user?.userId);
   }
 
   @UseGuards(RolesGuard)
   @Roles('Admin')
   @Delete(':id')
-  remove(@Param('id', IdValidationPipe) id: string) {
-    return this.usersService.remove(+id);
+  remove(
+    @Param('id', IdValidationPipe) id: string,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.usersService.remove(+id, request.user?.userId);
   }
 }

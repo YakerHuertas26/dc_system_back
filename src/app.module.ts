@@ -3,7 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { typeOrmConfig } from './config/typeorm.config';
+import { createDataSourceSafely, typeOrmConfig } from './config/typeorm.config';
+import { validateRuntimeConfig } from './config/runtime-config';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { ProductStatesModule } from './modules/product-states/product-states.module';
 import { ProductsModule } from './modules/products/products.module';
@@ -14,18 +15,19 @@ import { SuppliersModule } from './modules/suppliers/suppliers.module';
 import { ColorsModule } from './modules/colors/colors.module';
 import { ProductColorsModule } from './modules/product-colors/product-colors.module';
 
-
 @Module({
   imports: [
-   // permite leer globalmete las variables de entorno
+    // permite leer globalmete las variables de entorno
     ConfigModule.forRoot({
-    isGlobal:true
+      isGlobal: true,
+      validate: validateRuntimeConfig,
     }),
 
     // acceder a la configuracion de typeorm de manera asincrona y usando el servicio de configuracion para obtener las variables de entorno(configService)
     TypeOrmModule.forRootAsync({
       useFactory: typeOrmConfig,
-      inject: [ConfigService]
+      dataSourceFactory: createDataSourceSafely,
+      inject: [ConfigService],
     }),
 
     CategoriesModule,
@@ -45,7 +47,6 @@ import { ProductColorsModule } from './modules/product-colors/product-colors.mod
     ColorsModule,
 
     ProductColorsModule,
-
   ],
   controllers: [AppController],
   providers: [AppService],
